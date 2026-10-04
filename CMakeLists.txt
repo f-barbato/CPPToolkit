@@ -50,6 +50,13 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+set(CPPTOOLKIT_DIST_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/dist/$<IF:$<BOOL:$<CONFIG>>,$<CONFIG>,NoConfig>/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}"
+)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CPPTOOLKIT_DIST_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CPPTOOLKIT_DIST_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CPPTOOLKIT_DIST_DIR}/bin")
+
 # cpptoolkitTargets is populated by cpptoolkit_add_module() as each module is processed.
 # Order matters: 'net' must be configured before 'ui' so that ui can detect
 # the cpptoolkit::net target for its optional net-widgets sub-functionality.
@@ -57,6 +64,20 @@ foreach(module platform struct net mvvm algo ui)
     string(TOUPPER "${module}" MODULE_UPPER)
     if(CPPTOOLKIT_BUILD_${MODULE_UPPER})
         add_subdirectory(modules/${module})
+    endif()
+endforeach()
+
+add_custom_target(cpptoolkit_stage_headers ALL
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${CPPTOOLKIT_DIST_DIR}/include"
+)
+foreach(module platform struct mvvm algo ui net)
+    set(module_include_dir "${CMAKE_CURRENT_SOURCE_DIR}/modules/${module}/include")
+    if(EXISTS "${module_include_dir}")
+        add_custom_command(TARGET cpptoolkit_stage_headers POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory
+                "${module_include_dir}"
+                "${CPPTOOLKIT_DIST_DIR}/include"
+        )
     endif()
 endforeach()
 

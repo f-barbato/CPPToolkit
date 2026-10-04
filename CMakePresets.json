@@ -8,7 +8,8 @@
       "binaryDir": "${sourceDir}/build/${presetName}",
       "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "VCPKG_MANIFEST_MODE": "ON"
       }
     },
     {
@@ -36,6 +37,23 @@
         "CPPTOOLKIT_BUILD_TESTS": "ON",
         "CPPTOOLKIT_BUILD_EXAMPLES": "ON",
         "VCPKG_MANIFEST_FEATURES": "ui;net;tests;examples"
+      }
+    },
+    {
+      "name": "all-modules-debug",
+      "displayName": "All modules, tests and examples (Debug build)",
+      "inherits": "all-modules",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "all-modules-release",
+      "displayName": "All modules, tests and examples (Release build)",
+      "inherits": "all-modules",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "ON"
       }
     }
   ],

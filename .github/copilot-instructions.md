@@ -71,7 +71,9 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 - Goal: make ImGui (immediate-mode) feel "retained" — a persistent widget tree built **once**, bound to `mvvm` properties, redrawn each frame.
 - `Widget` base class with virtual `Draw()`; `Panel` is a container (`Add<T>(...)`, `Remove(...)`) holding `unique_ptr<Widget>` children.
 - Widgets bind to `ObservableProperty<T>` two-way: read on `Draw()`, write back on user interaction.
-- Chosen graphics backend: **raylib 6.0** + **rlImGui** (bridge, not on vcpkg — vendored via `FetchContent` or submodule) + **ImPlot** for real-time plotting.
+- Concrete widgets shipped in `cpptoolkit/ui/widgets/`: `TextWidget`, `SliderFloatWidget`, `ButtonWidget`, `PlotLineWidget` (ImPlot, backed by a `cpptoolkit::structs::RingBuffer`).
+- Chosen graphics backend: **raylib 6.0** + **rlImGui** (bridge, not on vcpkg — vendored via `FetchContent` in `modules/ui/examples/`, not inside the `ui` library itself) + **ImPlot** for real-time plotting.
+- `modules/ui/examples/main.cpp` is a working raylib+ImGui+ImPlot demo app (built with `CPPTOOLKIT_BUILD_EXAMPLES=ON`), wiring a `DemoViewModel` to a `Panel` of the widgets above.
 - Original use case: visual debug tooling for microcontrollers (register/memory viewers, real-time telemetry plots, serial/BLE consoles).
 
 ### net module
@@ -87,7 +89,7 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 Apache License 2.0 (see `LICENSE`). Be mindful of this when choosing third-party dependencies for the `net`/BLE feature (SimpleBLE is BUSL-1.1).
 
 ## Status
-🚧 Early stage — architecture has been designed and discussed at length (see `copilot-session-1f7a4d70-3f05-4256-aa83-bf5d122f3b1f.md` for the full historical design conversation), but module skeletons are not yet implemented in the repo.
+🚧 In progress — vcpkg/CMake scaffolding and module skeletons exist and build/install/`find_package` has been verified end-to-end for `platform`/`struct`/`mvvm`/`algo`/`net`. `ui` has concrete widgets (`TextWidget`, `SliderFloatWidget`, `ButtonWidget`, `PlotLineWidget`) and a working raylib+ImGui+ImPlot example (`modules/ui/examples/`), but building it requires a full vcpkg toolchain (imgui/implot/raylib) that has not been exercised in this environment. See `copilot-session-1f7a4d70-3f05-4256-aa83-bf5d122f3b1f.md` for the full historical design conversation.
 
 ## Working conventions for Copilot in this repo
 - Keep this file in sync whenever a new architectural decision is made or an existing one changes.

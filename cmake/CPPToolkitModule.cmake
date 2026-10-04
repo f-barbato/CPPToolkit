@@ -24,7 +24,7 @@ function(cpptoolkit_add_module)
     set(target "cpptoolkit_${MOD_NAME}")
 
     if(MOD_SOURCES)
-        add_library(${target} STATIC ${MOD_SOURCES})
+        add_library(${target} ${MOD_SOURCES})
         set(scope PUBLIC)
     else()
         add_library(${target} INTERFACE)
@@ -39,7 +39,7 @@ function(cpptoolkit_add_module)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
-    target_compile_features(${target} ${scope} cxx_std_17)
+    target_compile_features(${target} ${scope} cxx_std_23)
 
     if(MOD_PUBLIC_DEPS)
         target_link_libraries(${target} ${scope} ${MOD_PUBLIC_DEPS})

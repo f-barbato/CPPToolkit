@@ -29,7 +29,10 @@
       "dependencies": [
         { "name": "cpptoolkit", "default-features": false, "features": ["mvvm"] },
         { "name": "imgui", "features": ["docking-experimental"] },
-        "implot"
+        "implot",
+        "glfw3",
+        { "name": "raylib", "version>=": "6.0" }
+
       ]
     },
     "net": {

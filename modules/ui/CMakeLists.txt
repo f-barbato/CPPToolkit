@@ -9,6 +9,12 @@ cpptoolkit_add_module(
         implot::implot
 )
 
+find_package(raylib CONFIG REQUIRED)
+target_link_libraries(cpptoolkit_ui INTERFACE raylib)
+
+find_package(glfw3 CONFIG REQUIRED)
+target_link_libraries(cpptoolkit_ui INTERFACE glfw)
+
 # Optional sub-functionality: widgets that visualize cpptoolkit::net state.
 # 'net' is configured before 'ui' in the root CMakeLists.txt, so the target
 # already exists here if CPPTOOLKIT_BUILD_NET is ON. This mirrors the

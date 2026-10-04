@@ -13,6 +13,7 @@ CMakeUserPresets.json
 
 # Build / vcpkg
 build/
+dist/
 vcpkg_installed/
 copilot-session*.md
 
