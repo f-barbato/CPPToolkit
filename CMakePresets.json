@@ -1,0 +1,47 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 23, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default (vcpkg toolchain)",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "core-only",
+      "displayName": "Core modules (platform, struct, mvvm, algo) — no external dependencies",
+      "inherits": "default",
+      "cacheVariables": {
+        "CPPTOOLKIT_BUILD_PLATFORM": "ON",
+        "CPPTOOLKIT_BUILD_STRUCT": "ON",
+        "CPPTOOLKIT_BUILD_MVVM": "ON",
+        "CPPTOOLKIT_BUILD_ALGO": "ON"
+      }
+    },
+    {
+      "name": "all-modules",
+      "displayName": "All modules, tests and examples",
+      "inherits": "default",
+      "cacheVariables": {
+        "CPPTOOLKIT_BUILD_PLATFORM": "ON",
+        "CPPTOOLKIT_BUILD_STRUCT": "ON",
+        "CPPTOOLKIT_BUILD_MVVM": "ON",
+        "CPPTOOLKIT_BUILD_ALGO": "ON",
+        "CPPTOOLKIT_BUILD_UI": "ON",
+        "CPPTOOLKIT_BUILD_NET": "ON",
+        "CPPTOOLKIT_BUILD_TESTS": "ON",
+        "CPPTOOLKIT_BUILD_EXAMPLES": "ON",
+        "VCPKG_MANIFEST_FEATURES": "ui;net;tests;examples"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "default", "configurePreset": "default" },
+    { "name": "core-only", "configurePreset": "core-only" },
+    { "name": "all-modules", "configurePreset": "all-modules" }
+  ]
+}

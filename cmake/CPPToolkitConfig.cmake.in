@@ -1,0 +1,18 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+if(@CPPTOOLKIT_BUILD_UI@)
+    find_dependency(imgui CONFIG)
+    find_dependency(implot CONFIG)
+endif()
+if(@CPPTOOLKIT_BUILD_BLE@)
+    find_dependency(simpleble CONFIG)
+endif()
+if(@CPPTOOLKIT_BUILD_MVVM@)
+    find_dependency(Threads)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/cpptoolkitTargets.cmake")
+
+check_required_components(cpptoolkit)
