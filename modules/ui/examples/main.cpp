@@ -63,6 +63,9 @@ public:
 
 protected:
     void OnBuild() override {
+
+        this->SetFlags(ImGuiWindowFlags_NoCollapse);
+
         auto* viewModel = GetViewModel<DemoViewModel>();
         if (!viewModel) return;
 
@@ -101,7 +104,7 @@ public:
 
 int main() {
     
-    auto& app = ui::Application::GetInstance<EditorView>();
+    auto& app = ui::Application::Create<EditorView>();
 
     app.SetTitle("Docked View Example")
        .SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI)

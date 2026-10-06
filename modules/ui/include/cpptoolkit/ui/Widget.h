@@ -12,6 +12,8 @@
 
 namespace cpptoolkit::ui {
 
+class Application;
+
 // Base class for the retained widget tree. Draw() is called every frame by
 // the parent Panel (or the application main loop for the root widget) and is
 // expected to issue the corresponding ImGui immediate-mode calls.
@@ -24,6 +26,10 @@ namespace cpptoolkit::ui {
 // just calls GetViewModel<ConcreteViewModel>() to fetch it (nullptr if none
 // is set, or the type doesn't match) instead of having the ViewModel
 // threaded manually through every intermediate constructor.
+//
+// The owning Application cascades the same way (see SetApplication()), so
+// any widget can reach it (e.g. to call GetApplication()->Stop()) without it
+// being threaded through constructors either.
 class Widget {
 public:
     virtual ~Widget() = default;
@@ -45,6 +51,7 @@ public:
     T& Add(Args&&... args) {
         auto widget = std::make_unique<T>(std::forward<Args>(args)...);
         if (!widget->HasViewModel()) widget->SetViewModel(viewModel_);
+        if (!widget->HasApplication()) widget->SetApplication(application_);
         widget->PreBuild();
         T& ref = *widget;
         children_.push_back(std::move(widget));
@@ -81,6 +88,15 @@ public:
     template <typename T>
     T* GetViewModel() const { return dynamic_cast<T*>(viewModel_); }
 
+    // Attaches (or overrides) the ambient Application reference. Set once by
+    // Application::Run() on the root widget and cascaded automatically to
+    // every descendant via Add().
+    void SetApplication(Application* application) { application_ = application; }
+
+    bool HasApplication() const { return application_ != nullptr; }
+
+    Application* GetApplication() const { return application_; }
+
 protected:
 
     // Hook for subclasses to build their child tree (Add<>() calls); called
@@ -113,6 +129,7 @@ public:
 private:
     std::vector<std::unique_ptr<Widget>> children_;
     mvvm::ObservableObject* viewModel_ = nullptr;
+    Application* application_ = nullptr;
 
 };
 

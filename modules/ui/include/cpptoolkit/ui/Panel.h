@@ -20,10 +20,9 @@ class Panel : public Widget {
             if(!this->Visible)
                 return;
 
-            ImGui::Begin(_title.c_str(), &this->_open, _flags);
-
-            DrawChildren();
-
+            if(ImGui::Begin(_title.c_str(), &this->_open, _flags)) {
+                DrawChildren();
+            }
             ImGui::End();
         }
 
