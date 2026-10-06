@@ -38,6 +38,11 @@ public:
 
         DrawChildren();
     }
+
+    virtual void Destroy() {
+        DestroyChildren();
+    }
+
 protected:
     void BuildChildren() {
         for (auto& child : children_) {
@@ -49,6 +54,13 @@ protected:
         for (auto& child : children_) {
             if (child->Visible) child->Draw();
         }
+    }
+
+    void DestroyChildren() {
+        for (auto& child : children_) {
+            child->Destroy();
+        }
+        children_.clear();
     }
 
 public:
