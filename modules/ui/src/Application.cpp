@@ -13,11 +13,11 @@ namespace cpptoolkit::ui {
             this->_running = true;
 
             if(this->_configFlags){
-                SetConfigFlags(this->_configFlags);
+                ::SetConfigFlags(this->_configFlags);
             }
 
             InitWindow(this->_initialWidth, this->_initialHeight, this->_title.c_str());
-            SetTargetFPS(this->_targetFPS);
+            ::SetTargetFPS(this->_targetFPS);
             rlImGuiSetup(this->_darkTheme);
             ImPlot::CreateContext();
 
