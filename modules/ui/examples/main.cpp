@@ -1,12 +1,19 @@
 // Example: raylib (window/rendering) + Dear ImGui (via rlImGui) + ImPlot,
-// using cpptoolkit::ui's retained Widget/Panel tree bound to an
-// cpptoolkit::mvvm ViewModel.
+// using cpptoolkit::ui's retained Widget/Panel tree, built via
+// Application::GetInstance<T>() (factory/singleton per root-widget type) and
+// a fluent setup builder.
 //
 // Demonstrates:
-//  - a Panel built once (DemoView), not recreated every frame
+//  - a tree built once (EditorView -> EditorPanel -> DemoPanel), not
+//    recreated every frame
+//  - the ViewModel attached once at the root (View<DemoViewModel>) and
+//    cascading automatically down to nested panels as an ambient, optional
+//    binding context (DemoPanel fetches it via GetViewModel<T>(), with no
+//    constructor threading)
 //  - two-way binding via SliderFloatWidget (writes back through Set())
 //  - one-way binding via TextWidget/PlotLineWidget (polling Get() every frame)
 //  - a Command bound to ButtonWidget
+//  - ImGui docking (DockedPanel) hosting a regular Panel
 
 #include <cmath>
 
@@ -34,9 +41,9 @@ public:
         Status.Set("Reset");
     }};
 
-    // Called once per frame from the main loop (simulates a sensor reading
-    // that, in a real tool, would instead come from a cpptoolkit::net
-    // transport running on a background thread).
+    // Called once per frame (see EditorView::Draw() below) to simulate a
+    // sensor reading that, in a real tool, would instead come from a
+    // cpptoolkit::net transport running on a background thread.
     void Tick(float dt) {
         phase_ += dt;
         SensorValue.Set(Amplitude.Get() * std::sin(phase_));
@@ -46,71 +53,61 @@ private:
     float phase_ = 0.0f;
 };
 
-// Widget tree built once in the constructor; only Draw() runs every frame.
-class DemoView : public ui::View<DemoViewModel> {
+// No constructor parameter needed: the ViewModel is fetched lazily from the
+// ambient binding context (set once on the root View and cascaded down
+// automatically by Widget::Add), and binding stays fully optional - this
+// panel simply does nothing if none is available.
+class DemoPanel : public ui::Panel {
 public:
-    void Build() override {
-        Add<ui::TextWidget>(_viewModel->Status);
-        Add<ui::SliderFloatWidget>("Amplitude", _viewModel->Amplitude, 0.0f, 5.0f);
-        Add<ui::ButtonWidget>("Reset phase", _viewModel->ResetCommand);
-        Add<ui::PlotLineWidget>("Sensor value", _viewModel->SensorValue);
+    DemoPanel() : ui::Panel("Demo Panel") {}
 
-        BuildChildren();
-    }
+protected:
+    void OnBuild() override {
+        auto* viewModel = GetViewModel<DemoViewModel>();
+        if (!viewModel) return;
 
-    void Draw() override {
-        ImGui::Begin("Demo View");
-        
-        DrawChildren();
-        
-        ImGui::End();
+        Add<ui::TextWidget>(viewModel->Status);
+        Add<ui::ButtonWidget>("Click me", viewModel->ResetCommand);
+        Add<ui::SliderFloatWidget>("Volume", viewModel->Amplitude, 0.0f, 5.0f);
+        Add<ui::PlotLineWidget>("Sensor value", viewModel->SensorValue);
     }
 };
 
-class DockedView : public ui::View<DemoViewModel> {
-public:
-    void Build() override {
-
-        #ifdef IMGUI_HAS_DOCK
-        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        #endif
-
-
-        Add<ui::TextWidget>(_viewModel->Status);
-        Add<ui::SliderFloatWidget>("Amplitude", _viewModel->Amplitude, 0.0f, 5.0f);
-        Add<ui::ButtonWidget>("Reset phase", _viewModel->ResetCommand);
-        Add<ui::PlotLineWidget>("Sensor value", _viewModel->SensorValue);
-
-        BuildChildren();
-    }
-
-    void Draw() override {
-
-        #ifdef IMGUI_HAS_DOCK
-        ImGui::DockSpaceOverViewport(0, NULL, ImGuiDockNodeFlags_PassthruCentralNode);
-        #endif
-
-        ImGui::ShowDemoWindow();
-
-        ImGui::Begin("Docked View");
-        
-        DrawChildren();
-        
-        ImGui::End();
+// Hosts DemoPanel inside an ImGui dockspace.
+class EditorPanel : public ui::DockedPanel {
+protected:
+    void OnBuild() override {
+        Add<DemoPanel>();
     }
 };
 
+// Root widget: owns the DemoViewModel (created by View<T>) and ticks it once
+// per frame before drawing, since Application::Run() no longer exposes a
+// separate per-frame callback.
+class EditorView : public ui::View<DemoViewModel> {
+protected:
+    void OnBuild() override {
+        Add<EditorPanel>();
+    }
+
+public:
+    void Draw() override {
+        _viewModel->Tick(GetFrameTime());
+        Widget::Draw();
+    }
+};
 
 } // namespace
 
 int main() {
     
-    auto& app = ui::Application::GetInstance<DockedView>();
+    auto& app = ui::Application::GetInstance<EditorView>();
 
     app.SetTitle("Docked View Example")
-       .SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_UNDECORATED)
-       .SetInitialSize(800, 600)
+       .SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI)
+       .SetInitialSize(900, 600)
        .SetTargetFPS(144)
+       .SetBackgroundColor(DARKGRAY)
        .SetDarkTheme(true);
 
     return app.Run();
