@@ -5,8 +5,14 @@
   "homepage": "https://github.com/f-barbato/CPPToolkit",
   "license": "Apache-2.0",
   "dependencies": [
-    { "name": "vcpkg-cmake", "host": true },
-    { "name": "vcpkg-cmake-config", "host": true }
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
   ],
   "features": {
     "platform": {
@@ -18,7 +24,13 @@
     "mvvm": {
       "description": "MVVM pattern for C++ (Observable, ObservableProperty, Command, Dispatcher)",
       "dependencies": [
-        { "name": "cpptoolkit", "default-features": false, "features": ["struct"] }
+        {
+          "name": "cpptoolkit",
+          "default-features": false,
+          "features": [
+            "struct"
+          ]
+        }
       ]
     },
     "algo": {
@@ -27,12 +39,25 @@
     "ui": {
       "description": "Retained-mode layer over Dear ImGui, data-bound via mvvm",
       "dependencies": [
-        { "name": "cpptoolkit", "default-features": false, "features": ["mvvm"] },
-        { "name": "imgui", "features": ["docking-experimental"] },
+        {
+          "name": "cpptoolkit",
+          "default-features": false,
+          "features": [
+            "mvvm"
+          ]
+        },
+        {
+          "name": "imgui",
+          "features": [
+            "docking-experimental"
+          ]
+        },
         "implot",
         "glfw3",
-        { "name": "raylib", "version>=": "6.0" }
-
+        {
+          "name": "raylib",
+          "version>=": "5.5"
+        }
       ]
     },
     "net": {
@@ -41,23 +66,47 @@
     "ble": {
       "description": "Bluetooth Low Energy transport for net (via SimpleBLE)",
       "dependencies": [
-        { "name": "cpptoolkit", "default-features": false, "features": ["net"] },
+        {
+          "name": "cpptoolkit",
+          "default-features": false,
+          "features": [
+            "net"
+          ]
+        },
         "simpleble"
       ]
     },
     "ui-net-widgets": {
       "description": "UI widgets that visualize net module state (requires ui + net)",
       "dependencies": [
-        { "name": "cpptoolkit", "default-features": false, "features": ["ui", "net"] }
+        {
+          "name": "cpptoolkit",
+          "default-features": false,
+          "features": [
+            "ui",
+            "net"
+          ]
+        }
       ]
     },
     "examples": {
       "description": "Build example applications (UI examples additionally require raylib)",
-      "dependencies": [ "raylib" ]
+      "dependencies": [
+        "raylib"
+      ]
     },
     "tests": {
       "description": "Build unit tests",
-      "dependencies": [ "gtest" ]
+      "dependencies": [
+        "gtest"
+      ]
     }
-  }
+  },
+  "overrides": [
+    {
+      "name": "raylib",
+      "version": "5.5"
+    }
+  ],
+  "builtin-baseline": "19780d9cdf84d0944cf9a318666703b89ab6629c"
 }
