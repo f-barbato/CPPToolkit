@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cpptoolkit/ui/Application.h"
+#include "cpptoolkit/ui/View.h"
 #include "cpptoolkit/ui/Panel.h"
 #include "cpptoolkit/ui/Widget.h"
 #include "cpptoolkit/ui/widgets/widgets.h"

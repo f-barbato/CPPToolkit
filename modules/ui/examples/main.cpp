@@ -47,48 +47,71 @@ private:
 };
 
 // Widget tree built once in the constructor; only Draw() runs every frame.
-class DemoView : public ui::Panel {
+class DemoView : public ui::View<DemoViewModel> {
 public:
-    explicit DemoView(DemoViewModel& vm) {
-        Add<ui::TextWidget>(vm.Status);
-        Add<ui::SliderFloatWidget>("Amplitude", vm.Amplitude, 0.0f, 5.0f);
-        Add<ui::ButtonWidget>("Reset phase", vm.ResetCommand);
-        Add<ui::PlotLineWidget>("Sensor value", vm.SensorValue);
+    void Build() override {
+        Add<ui::TextWidget>(_viewModel->Status);
+        Add<ui::SliderFloatWidget>("Amplitude", _viewModel->Amplitude, 0.0f, 5.0f);
+        Add<ui::ButtonWidget>("Reset phase", _viewModel->ResetCommand);
+        Add<ui::PlotLineWidget>("Sensor value", _viewModel->SensorValue);
+
+        BuildChildren();
+    }
+
+    void Draw() override {
+        ImGui::Begin("Demo View");
+        
+        DrawChildren();
+        
+        ImGui::End();
     }
 };
+
+class DockedView : public ui::View<DemoViewModel> {
+public:
+    void Build() override {
+
+        #ifdef IMGUI_HAS_DOCK
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        #endif
+
+
+        Add<ui::TextWidget>(_viewModel->Status);
+        Add<ui::SliderFloatWidget>("Amplitude", _viewModel->Amplitude, 0.0f, 5.0f);
+        Add<ui::ButtonWidget>("Reset phase", _viewModel->ResetCommand);
+        Add<ui::PlotLineWidget>("Sensor value", _viewModel->SensorValue);
+
+        BuildChildren();
+    }
+
+    void Draw() override {
+
+        #ifdef IMGUI_HAS_DOCK
+        ImGui::DockSpaceOverViewport(0, NULL, ImGuiDockNodeFlags_PassthruCentralNode);
+        #endif
+
+        ImGui::ShowDemoWindow();
+
+        ImGui::Begin("Docked View");
+        
+        DrawChildren();
+        
+        ImGui::End();
+    }
+};
+
 
 } // namespace
 
 int main() {
-    /*InitWindow(900, 600, "CPPToolkit UI Demo (raylib + ImGui + ImPlot)");
-    SetTargetFPS(60);
+    
+    auto& app = ui::Application::GetInstance<DockedView>();
 
-    rlImGuiSetup(true);
-    ImPlot::CreateContext();
+    app.SetTitle("Docked View Example")
+       .SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_UNDECORATED)
+       .SetInitialSize(800, 600)
+       .SetTargetFPS(144)
+       .SetDarkTheme(true);
 
-    DemoViewModel viewModel;
-    DemoView view(viewModel);
-
-    while (!WindowShouldClose()) {
-        viewModel.Tick(GetFrameTime());
-
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        rlImGuiBegin();
-        ImGui::Begin("MCU Debug Tool - Demo");
-        view.Draw();
-        ImGui::End();
-        rlImGuiEnd();
-
-        EndDrawing();
-    }
-
-    ImPlot::DestroyContext();
-    rlImGuiShutdown();
-    CloseWindow();
-    return 0;*/
-
-    ui::Application app;
     return app.Run();
 }

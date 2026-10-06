@@ -2,9 +2,32 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "echo",
+			"label": "Config debug",
 			"type": "shell",
-			"command": "echo Hello"
+			"command": "cmake",
+			"args": [
+				"--preset",
+				"all-modules-debug"
+			]
+		},
+		{
+			"label": "Build debug",
+			"type": "shell",
+			"command": "cmake",
+			"dependsOn": [
+				"Config debug"
+			],
+			"args": [
+				"--build",
+				"${workspaceFolder}/build/all-modules-debug"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [
+				"$gcc"
+			]
 		}
 	]
 }
