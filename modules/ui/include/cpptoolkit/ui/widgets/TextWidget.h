@@ -13,9 +13,8 @@ namespace cpptoolkit::ui {
 // Read-only text display, polling a bound string property every frame.
 class TextWidget : public Widget {
 public:
-    explicit TextWidget(mvvm::ObservableProperty<std::string>& bound) : bound_(bound) {}
-
-    void Draw() override { ImGui::TextUnformatted(bound_.Get().c_str()); }
+    explicit TextWidget(mvvm::ObservableProperty<std::string>& bound);
+    void Draw() override;
 
 private:
     mvvm::ObservableProperty<std::string>& bound_;

@@ -15,15 +15,8 @@ namespace cpptoolkit::ui {
 // when the user drags the slider.
 class SliderFloatWidget : public Widget {
 public:
-    SliderFloatWidget(std::string label, mvvm::ObservableProperty<float>& bound, float min, float max)
-        : label_(std::move(label)), bound_(bound), min_(min), max_(max) {}
-
-    void Draw() override {
-        float value = bound_.Get();
-        if (ImGui::SliderFloat(label_.c_str(), &value, min_, max_)) {
-            bound_.Set(value);
-        }
-    }
+    SliderFloatWidget(std::string label, mvvm::ObservableProperty<float>& bound, float min, float max);
+    void Draw() override;
 
 private:
     std::string label_;

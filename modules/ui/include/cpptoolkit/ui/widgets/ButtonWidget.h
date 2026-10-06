@@ -14,15 +14,9 @@ namespace cpptoolkit::ui {
 // Button bound to a Command: disabled whenever Command::CanExecute() is false.
 class ButtonWidget : public Widget {
 public:
-    ButtonWidget(std::string label, mvvm::Command& command) : label_(std::move(label)), command_(command) {}
-
-    void Draw() override {
-        ImGui::BeginDisabled(!command_.CanExecute());
-        if (ImGui::Button(label_.c_str())) {
-            command_.Execute();
-        }
-        ImGui::EndDisabled();
-    }
+    
+    ButtonWidget(std::string label, mvvm::Command& command);
+    void Draw() override;
 
 private:
     std::string label_;

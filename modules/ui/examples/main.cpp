@@ -60,10 +60,10 @@ public:
 } // namespace
 
 int main() {
-    InitWindow(900, 600, "CPPToolkit UI Demo (raylib + ImGui + ImPlot)");
+    /*InitWindow(900, 600, "CPPToolkit UI Demo (raylib + ImGui + ImPlot)");
     SetTargetFPS(60);
 
-    rlImGuiSetup(/*darkTheme=*/true);
+    rlImGuiSetup(true);
     ImPlot::CreateContext();
 
     DemoViewModel viewModel;
@@ -87,5 +87,8 @@ int main() {
     ImPlot::DestroyContext();
     rlImGuiShutdown();
     CloseWindow();
-    return 0;
+    return 0;*/
+
+    ui::Application app;
+    return app.Run();
 }
