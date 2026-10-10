@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <future>
 #include <chrono>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 #include <imgui.h>
@@ -16,6 +17,14 @@
 #include "../examples/TestUI.h"
 
 namespace {
+
+static_assert(!std::is_copy_constructible_v<cpptoolkit::ui::Widget>);
+static_assert(!std::is_copy_assignable_v<cpptoolkit::ui::Widget>);
+static_assert(!std::is_move_constructible_v<cpptoolkit::ui::Widget>);
+static_assert(!std::is_move_assignable_v<cpptoolkit::ui::Widget>);
+static_assert(!std::is_copy_constructible_v<cpptoolkit::ui::ButtonWidget>);
+static_assert(!std::is_copy_assignable_v<cpptoolkit::ui::SliderFloatWidget>);
+static_assert(!std::is_copy_constructible_v<cpptoolkit::ui::Panel>);
 
 class WidgetGalleryTests : public testing::Test {
 protected:

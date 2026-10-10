@@ -7,6 +7,10 @@ A retained-mode layer on top of Dear ImGui (immediate-mode), data-bound to `mvvm
 - `Widget` — base class; `Draw()` is called every frame and is expected to issue the corresponding ImGui calls.
 - `Panel` — persistent container of child widgets (`Add<T>(...)`, `Remove(...)`). The widget tree is built once; only the values read in `Draw()` change frame to frame.
 
+Widgets are explicitly noncopyable and nonmovable: child ownership is exclusive,
+and ambient contexts, callbacks and ImGui IDs rely on stable widget identity.
+Transfer ownership through smart pointers rather than copying widget objects.
+
 ### Editor workspace
 
 `EditorLayoutWidget` creates a dockable viewport workspace with `Left()`,

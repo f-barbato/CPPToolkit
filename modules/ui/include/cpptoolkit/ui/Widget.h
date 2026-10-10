@@ -30,6 +30,22 @@ class Application;
  */
 class Widget {
 public:
+    /** @brief Construct an empty widget with stable identity. */
+    Widget() = default;
+    /** @brief Widget trees have exclusive ownership and cannot be copied. */
+    Widget(const Widget&) = delete;
+    /** @brief Widget trees have exclusive ownership and cannot be assigned.
+     *  @param other Unused source; assignment is deleted.
+     *  @return Not available.
+     */
+    Widget& operator=(const Widget& other) = delete;
+    /** @brief Widgets cannot move because contexts and callbacks may refer to their identity. */
+    Widget(Widget&&) = delete;
+    /** @brief Preserve widget identity by prohibiting move assignment.
+     *  @param other Unused source; assignment is deleted.
+     *  @return Not available.
+     */
+    Widget& operator=(Widget&& other) = delete;
     /** @brief Destroy this widget and its owned children. */
     virtual ~Widget() = default;
 
