@@ -101,6 +101,7 @@ jobs:
             build/vcpkg/bootstrap-vcpkg.sh -disableMetrics
           fi
       - name: Build shared modules and dependencies
+        id: install
         run: |
           build/vcpkg/vcpkg install \
             --x-manifest-root="$GITHUB_WORKSPACE/packaging/release" \
@@ -108,6 +109,23 @@ jobs:
             --overlay-ports="$GITHUB_WORKSPACE/ports" \
             --overlay-triplets="$GITHUB_WORKSPACE/triplets" \
             --triplet="$TARGET_TRIPLET" --host-triplet="$TARGET_TRIPLET"
+      - name: Print failed build diagnostics
+        if: failure() && steps.install.outcome == 'failure'
+        run: |
+          while IFS= read -r -d '' log; do
+            echo "::group::$log"
+            tail -n 120 "$log"
+            echo "::endgroup::"
+          done < <(find build/vcpkg/buildtrees -type f \( -name '*-out.log' -o -name '*-err.log' \) -print0)
+      - name: Upload failed build logs
+        if: failure() && steps.install.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.system }}-${{ matrix.arch }}
+          path: |
+            build/vcpkg/buildtrees/**/*.log
+            build/vcpkg/buildtrees/**/issue_body.md
+          if-no-files-found: warn
       - name: Stage dist and create ZIP
         run: |
           python scripts/release.py package --tag "$RELEASE_TAG" \
