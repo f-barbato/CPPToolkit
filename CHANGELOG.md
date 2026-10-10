@@ -1,9 +1,5 @@
-# 0.1.0-b003
+# 0.1.0-b004
 
 ### Fixed
 
-- Install the Autotools prerequisites required by pthread-stubs on Linux x64 and ARM64 release runners.
-
-### Added
-
-- Print vcpkg build diagnostics on installation failure and upload per-platform log artifacts.
+- Explicitly prohibit widget copy and move operations to preserve exclusive child ownership and stable identity, fixing MSVC C2280 errors in Windows shared builds.
