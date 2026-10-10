@@ -24,6 +24,22 @@ option(CPPTOOLKIT_BUILD_UI_NET_WIDGETS "Enable ui widgets that visualize net mod
 
 option(CPPTOOLKIT_BUILD_TESTS "Build unit tests" OFF)
 option(CPPTOOLKIT_BUILD_EXAMPLES "Build examples" OFF)
+option(CPPTOOLKIT_BUILD_DOCS "Enable the Doxygen API documentation target" OFF)
+
+if(CPPTOOLKIT_BUILD_TESTS)
+    enable_testing()
+endif()
+
+if(CPPTOOLKIT_BUILD_DOCS)
+    find_package(Doxygen 1.9.5 REQUIRED)
+    configure_file(docs/Doxyfile.in "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile" @ONLY)
+    add_custom_target(cpptoolkit_docs
+        COMMAND "${DOXYGEN_EXECUTABLE}" "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Generating CPPToolkit public API documentation"
+        VERBATIM
+    )
+endif()
 
 # ---------------------------------------------------------------------------
 # Hard inter-module dependencies: enabling a module force-enables what it needs.

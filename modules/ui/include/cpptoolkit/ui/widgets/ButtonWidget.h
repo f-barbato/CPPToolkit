@@ -1,5 +1,9 @@
 #pragma once
 
+/** @file
+ *  @brief Command-bound button.
+ */
+
 #include <string>
 #include <utility>
 
@@ -11,12 +15,22 @@
 
 namespace cpptoolkit::ui {
 
-// Button bound to a Command: disabled whenever Command::CanExecute() is false.
+/** @brief Button disabled when its borrowed Command cannot execute.
+ *  @note The command must outlive the widget. OnClick executes after the command.
+ */
 class ButtonWidget : public Widget {
 public:
     
-    ButtonWidget(std::string label, mvvm::Command& command);
+    /** @brief Bind a button action.
+     *  @param label ImGui button label and ID.
+     *  @param command Borrowed command.
+     *  @param onClick Optional callback after a user activates the button.
+     */
+    ButtonWidget(std::string label, mvvm::Command& command, std::function<void()> onClick = {});
+    /** @brief Render the button and invoke enabled user actions. */
     void Draw() override;
+    /** @brief Optional render-thread callback after command execution. */
+    std::function<void()> OnClick;
 
 private:
     std::string label_;

@@ -36,6 +36,13 @@ set(UI_SOURCES
     src/widgets/ButtonWidget.cpp
     src/widgets/PlotLineWidget.cpp
     src/widgets/SliderFloatWidget.cpp
+    src/widgets/TextBoxWidget.cpp
+    src/widgets/FeedbackWidgets.cpp
+    src/widgets/DataWidgets.cpp
+    src/widgets/LayoutWidgets.cpp
+    src/widgets/NavigationWidgets.cpp
+    src/widgets/OverlayWidgets.cpp
+    src/widgets/InputWidgets.cpp
     src/widgets/TextWidget.cpp
     src/Application.cpp
 )

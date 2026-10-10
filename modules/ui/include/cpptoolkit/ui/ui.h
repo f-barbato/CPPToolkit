@@ -1,5 +1,9 @@
 #pragma once
 
+/** @file
+ *  @brief Umbrella header for the UI module and all generic widgets.
+ */
+
 #include "cpptoolkit/ui/Application.h"
 #include "cpptoolkit/ui/View.h"
 #include "cpptoolkit/ui/Panel.h"

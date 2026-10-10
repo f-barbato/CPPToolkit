@@ -1,0 +1,94 @@
+/**
+ * @mainpage CPPToolkit public API
+ *
+ * CPPToolkit is a modular C++ library distributed as one vcpkg package.
+ * Enable only the module features required by the application. The CMake
+ * targets are named `cpptoolkit::<module>`.
+ *
+ * @section modules Modules
+ *
+ * - platform: operating-system and architecture identification.
+ * - struct: fixed-capacity data structures, including structs::RingBuffer.
+ * - mvvm: observable properties, subscriptions, commands and work queues.
+ * - algo: reserved namespace for algorithm integrations.
+ * - ui: persistent widgets drawn every frame using Dear ImGui and ImPlot.
+ * - net: transport contracts, placeholder serial/TCP backends and optional
+ *   SimpleBLE connection management.
+ *
+ * Enabling ui enables mvvm, which enables struct. The current module helper
+ * requests C++23. Tests, examples and this documentation are opt-in.
+ *
+ * @section ui_binding UI binding and callback contract
+ *
+ * Widgets poll mvvm::ObservableProperty::Get() during Draw(), and commit user
+ * edits through Set() before invoking the widget's event callback. Callbacks
+ * execute synchronously on the render thread; programmatic Set() calls do not
+ * trigger user-edit callbacks. Observe the property's OnChanged() to listen to
+ * changes from any source. Exceptions are not swallowed by widgets.
+ *
+ * Bound properties and commands must outlive the widgets that reference them.
+ * Widget trees, callback assignments and ImGui state belong to the render
+ * thread; only property access is mutex-protected. Do not add/remove/destroy
+ * widgets from inside an active Draw()/callback traversal. Defer structural
+ * changes until after rendering. Use mvvm::Dispatcher for actions that must be
+ * marshalled to the render thread.
+ *
+ * TableWidget::OnSortRequested is a request to the ViewModel, not an automatic
+ * in-place sort. It can include the initial default sort and multi-column sort
+ * specifications. Popup open/close callbacks describe user transitions;
+ * programmatic visibility changes are reflected without these events.
+ *
+ * Read-only and feedback widgets do not invent setter callbacks. Menu items
+ * and buttons execute a bound mvvm::Command before OnClick. Containers own their
+ * children; use Widget::Add(), TabBarWidget::AddTab() or SplitterWidget::First()
+ * and SplitterWidget::Second() to build their contents.
+ *
+ * @section gallery TestUI
+ *
+ * Build `cpptoolkit_ui_demo` with CPPTOOLKIT_BUILD_UI and
+ * CPPTOOLKIT_BUILD_EXAMPLES enabled. The TestUI window contains Input,
+ * Feedback, Data, Navigation, Layout and Overlay tabs and displays callback
+ * events through a ViewModel property. It uses raylib and rlImGui as its
+ * graphics backend. Headless unit tests exercise binding and gallery rendering
+ * without creating an operating-system window.
+ *
+ * @section generation Generating documentation
+ *
+ * Install Doxygen 1.9.5 or newer, configure with CPPTOOLKIT_BUILD_DOCS=ON, and
+ * build the cpptoolkit_docs target. HTML is written to `build-directory/docs/html`
+ * and XML to `build-directory/docs/xml`. Undocumented public declarations,
+ * malformed references and parameter documentation warnings fail generation.
+ * All module headers are included even when their compilation is disabled.
+ *
+ * @section safety Lifetimes and implementation limits
+ *
+ * Observable subscriptions must be destroyed before their observable owner.
+ * Refer to each MVVM type for callback ordering, snapshot and thread behavior.
+ * Serial/TCP transport backends and BLE characteristic I/O are placeholders;
+ * optional BLE connection management uses SimpleBLE.
+ * PasswordWidget masks display only; its bound std::string is not secure storage.
+ * ImageWidget does not own or upload textures; the caller must keep the
+ * backend texture alive through rendering.
+ */
+
+/** @namespace cpptoolkit
+ *  @brief Root namespace of the modular toolkit.
+ */
+/** @namespace cpptoolkit::platform
+ *  @brief Platform identification utilities.
+ */
+/** @namespace cpptoolkit::structs
+ *  @brief Fixed-capacity data structures.
+ */
+/** @namespace cpptoolkit::mvvm
+ *  @brief Observable state, commands and thread handoff utilities.
+ */
+/** @namespace cpptoolkit::algo
+ *  @brief Namespace reserved for algorithm integrations.
+ */
+/** @namespace cpptoolkit::net
+ *  @brief Transport abstraction, placeholder serial/TCP backends and optional BLE connections.
+ */
+/** @namespace cpptoolkit::ui
+ *  @brief Retained widget trees with immediate-mode rendering and MVVM binding.
+ */

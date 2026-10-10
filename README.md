@@ -50,6 +50,25 @@ cmake -B build -DCPPTOOLKIT_BUILD_MVVM=ON -DCPPTOOLKIT_BUILD_UI=ON
 cmake --build build
 ```
 
+## API documentation
+
+All public module headers contain Doxygen documentation, including ownership,
+thread-safety and callback contracts. Generate HTML and XML with Doxygen 1.9.5+
+(no UI dependencies are needed for this documentation-only configuration):
+
+```bash
+cmake -S . -B build/docs -DCPPTOOLKIT_BUILD_PLATFORM=ON -DCPPTOOLKIT_BUILD_DOCS=ON
+cmake --build build/docs --target cpptoolkit_docs
+```
+
+Open `build/docs/docs/html/index.html`. All module APIs are included regardless
+of the enabled build modules; documentation warnings fail the target.
+`CPPTOOLKIT_BUILD_DOCS` defaults to `OFF` and does not affect consumer builds.
+
+The UI example (`cpptoolkit_ui_demo`, also called TestUI) showcases the generic
+widgets in six tabs. See [the UI module](modules/ui/README.md) for the catalog
+and MVVM event binding rules.
+
 ## Status
 
 🚧 Work in progress — module skeletons and build configuration are being actively developed.

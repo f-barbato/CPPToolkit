@@ -71,7 +71,9 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 - Goal: make ImGui (immediate-mode) feel "retained" — a persistent widget tree built **once**, bound to `mvvm` properties, redrawn each frame.
 - `Widget` base class with virtual `Draw()`; `Panel` is a container (`Add<T>(...)`, `Remove(...)`) holding `unique_ptr<Widget>` children.
 - Widgets bind to `ObservableProperty<T>` two-way: read on `Draw()`, write back on user interaction.
-- Concrete widgets shipped in `cpptoolkit/ui/widgets/`: `TextWidget`, `SliderFloatWidget`, `ButtonWidget`, `PlotLineWidget` (ImPlot, backed by a `cpptoolkit::structs::RingBuffer`).
+- Concrete widgets shipped in `cpptoolkit/ui/widgets/`: `TextWidget`, `TextBoxWidget` (two-way string binding, optional render-thread `OnTextChanged` callback for user edits), `SliderFloatWidget`, `ButtonWidget`, `PlotLineWidget` (ImPlot, backed by a `cpptoolkit::structs::RingBuffer`).
+- Generic input, selection, feedback, data, navigation, layout and overlay controls are grouped into `InputWidgets.h`, `FeedbackWidgets.h`, `DataWidgets.h`, `NavigationWidgets.h`, `LayoutWidgets.h` and `OverlayWidgets.h`; see the UI README for the full catalog. They retain `ObservableProperty`/`Command` bindings and optional render-thread user-event callbacks after property commit. Programmatic property changes do not emit user-edit callbacks. Table sorting is explicitly requested from the ViewModel.
+- `examples/TestUI.h` builds a six-tab gallery inside `cpptoolkit_ui_demo` (TestUI), covering all generic controls. `modules/ui/tests/` contains headless ImGui binding and gallery tests.
 - Chosen graphics backend: **raylib 6.0** + **rlImGui** (bridge, not on vcpkg — vendored via `FetchContent` in `modules/ui/examples/`, not inside the `ui` library itself) + **ImPlot** for real-time plotting.
 - `modules/ui/examples/main.cpp` is a working raylib+ImGui+ImPlot demo app (built with `CPPTOOLKIT_BUILD_EXAMPLES=ON`), wiring a `DemoViewModel` to a `Panel` of the widgets above.
 - Original use case: visual debug tooling for microcontrollers (register/memory viewers, real-time telemetry plots, serial/BLE consoles).
@@ -84,12 +86,13 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 - CMake ≥ 3.20, C++17 minimum (`cxx_std_17`).
 - Root `CMakeLists.txt` exposes one `CPPTOOLKIT_BUILD_<MODULE>` option per module (default `OFF`), and auto-enables hard dependencies (e.g. enabling `ui` forces `mvvm` and `struct` ON).
 - Tests and examples are opt-in via `CPPTOOLKIT_BUILD_TESTS` / `CPPTOOLKIT_BUILD_EXAMPLES`, kept out of default builds.
+- All public module headers are Doxygen-documented. `CPPTOOLKIT_BUILD_DOCS=ON` exposes `cpptoolkit_docs` (Doxygen >= 1.9.5), writing HTML/XML to the build directory's `docs/`; documentation warnings fail generation, and all public modules are included regardless of enabled compilation features.
 
 ## License
 Apache License 2.0 (see `LICENSE`). Be mindful of this when choosing third-party dependencies for the `net`/BLE feature (SimpleBLE is BUSL-1.1).
 
 ## Status
-🚧 In progress — vcpkg/CMake scaffolding and module skeletons exist and build/install/`find_package` has been verified end-to-end for `platform`/`struct`/`mvvm`/`algo`/`net`. `ui` has concrete widgets (`TextWidget`, `SliderFloatWidget`, `ButtonWidget`, `PlotLineWidget`) and a working raylib+ImGui+ImPlot example (`modules/ui/examples/`), but building it requires a full vcpkg toolchain (imgui/implot/raylib) that has not been exercised in this environment. See `copilot-session-1f7a4d70-3f05-4256-aa83-bf5d122f3b1f.md` for the full historical design conversation.
+🚧 In progress — vcpkg/CMake scaffolding and module skeletons exist and build/install/`find_package` has been verified end-to-end for `platform`/`struct`/`mvvm`/`algo`/`net`. The expanded `ui` library, TestUI demo and headless tests build with the full vcpkg toolchain (imgui/implot/raylib); headless tests cover bindings and gallery rendering. All public API documentation is generated via Doxygen. Serial/TCP and BLE characteristic I/O remain placeholders. See `copilot-session-1f7a4d70-3f05-4256-aa83-bf5d122f3b1f.md` for the full historical design conversation.
 
 ## Working conventions for Copilot in this repo
 - Keep this file in sync whenever a new architectural decision is made or an existing one changes.

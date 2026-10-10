@@ -6,19 +6,38 @@
 #include <queue>
 #include <thread>
 
+/**
+ * @file NotificationWorker.h
+ * @brief Serial background execution queue for notification-related tasks.
+ */
+
 namespace cpptoolkit::mvvm {
 
-// Single dedicated background thread executing posted tasks in FIFO order.
-// Useful to run Observable<T>::Notify handlers off the caller's thread when
-// handlers perform non-trivial work. Ordering is preserved, but all tasks
-// serialize through this one worker (no parallel handler execution).
+/**
+ * @brief Executes posted tasks on one dedicated background thread in FIFO order.
+ *
+ * Instance() returns the process-wide worker. Tasks are serialized, not run in
+ * parallel. During destruction, it processes tasks already queued before
+ * exiting. Task exceptions are not caught; an uncaught exception on the worker
+ * thread causes std::terminate.
+ */
 class NotificationWorker {
 public:
+    /**
+     * @brief Returns the process-wide notification worker.
+     * @return Reference to the shared worker.
+     */
     static NotificationWorker& Instance();
 
+    /**
+     * @brief Enqueues a task for the worker thread.
+     * @param task Callable to execute after previously queued tasks.
+     */
     void Post(std::function<void()> task);
 
+    /** @brief Copy construction is disabled for the singleton worker. */
     NotificationWorker(const NotificationWorker&) = delete;
+    /** @brief Copy assignment is disabled for the singleton worker. */
     NotificationWorker& operator=(const NotificationWorker&) = delete;
 
 private:

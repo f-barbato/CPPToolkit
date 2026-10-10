@@ -19,6 +19,8 @@
 #include <cpptoolkit/mvvm/mvvm.h>
 #include <cpptoolkit/ui/ui.h>
 
+#include "TestUI.h"
+
 using namespace cpptoolkit;
 
 namespace {
@@ -28,6 +30,8 @@ public:
     mvvm::ObservableProperty<float> SensorValue{this, "SensorValue", 0.0f};
     mvvm::ObservableProperty<float> Amplitude{this, "Amplitude", 1.0f};
     mvvm::ObservableProperty<std::string> Status{this, "Status", "Running"};
+    mvvm::ObservableProperty<std::string> TextInput{this, "TextInput", ""};
+    TestUIState Gallery;
 
     mvvm::Command ResetCommand{[this] {
         phase_ = 0.0f;
@@ -75,16 +79,23 @@ public:
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         #endif
 
-
         Add<ui::TextWidget>(_viewModel->Status);
         Add<ui::SliderFloatWidget>("Amplitude", _viewModel->Amplitude, 0.0f, 5.0f);
         Add<ui::ButtonWidget>("Reset phase", _viewModel->ResetCommand);
         Add<ui::PlotLineWidget>("Sensor value", _viewModel->SensorValue);
+        Add<ui::TextBoxWidget>("Text input", _viewModel->TextInput, [&](const std::string& value) {
+            _viewModel->TextInput.Set(value);
+        });
+        Add<ui::TextBoxWidget>("Text input (read-only)", _viewModel->TextInput).readOnly = true;
+        BuildTestUIWidgets(*this, _viewModel->Gallery);
 
         BuildChildren();
     }
 
     void Draw() override {
+
+        _viewModel->Tick(GetFrameTime());
+        _viewModel->Gallery.Tick(GetFrameTime());
 
         #ifdef IMGUI_HAS_DOCK
         ImGui::DockSpaceOverViewport(0, NULL, ImGuiDockNodeFlags_PassthruCentralNode);
@@ -92,7 +103,7 @@ public:
 
         ImGui::ShowDemoWindow();
 
-        ImGui::Begin("Docked View");
+        ImGui::Begin("TestUI", nullptr, ImGuiWindowFlags_MenuBar);
         
         DrawChildren();
         
@@ -107,9 +118,9 @@ int main() {
     
     auto& app = ui::Application::GetInstance<DockedView>();
 
-    app.SetTitle("Docked View Example")
-       .SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_UNDECORATED)
-       .SetInitialSize(800, 600)
+    app.SetTitle("CPPToolkit TestUI")
+       .SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI)
+       .SetInitialSize(1200, 900)
        .SetTargetFPS(144)
        .SetDarkTheme(true);
 

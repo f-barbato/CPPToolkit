@@ -4,19 +4,41 @@
 #include <mutex>
 #include <vector>
 
+/**
+ * @file Dispatcher.h
+ * @brief Queues actions for execution by a caller-selected thread.
+ */
+
 namespace cpptoolkit::mvvm {
 
-// Marshals actions onto whichever thread calls ProcessPending() (typically
-// the main/render thread). Only needed when a background-thread handler must
-// call UI APIs directly (e.g. ImGui::OpenPopup); ordinary property binding
-// via ObservableProperty<T> polling does not require this.
+/**
+ * @brief Queues actions for execution by the thread calling ProcessPending().
+ *
+ * Main() returns the process-wide dispatcher. Post() is safe to call while
+ * another thread processes the queue. ProcessPending() swaps the queue into a
+ * local batch before invoking actions, so actions posted during processing
+ * wait for the next call. Actions in a batch execute in post order on the
+ * processing thread.
+ */
 class Dispatcher {
 public:
+    /**
+     * @brief Returns the process-wide dispatcher instance.
+     * @return Reference to the shared dispatcher.
+     */
     static Dispatcher& Main();
 
+    /**
+     * @brief Adds an action to the pending queue.
+     * @param action Callable to be invoked by a later ProcessPending() call.
+     */
     void Post(std::function<void()> action);
 
-    // Call once per frame from the main/render thread.
+    /**
+     * @brief Executes the actions pending at the start of this call.
+     * @throws Any exception thrown by an action; later actions in the local
+     * batch are not invoked after an exception.
+     */
     void ProcessPending();
 
 private:

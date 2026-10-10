@@ -1,5 +1,9 @@
 #pragma once
 
+/** @file
+ *  @brief Read-only observable string display.
+ */
+
 #include <string>
 
 #include <imgui.h>
@@ -10,10 +14,14 @@
 
 namespace cpptoolkit::ui {
 
-// Read-only text display, polling a bound string property every frame.
+/** @brief Display a borrowed string property, polling it once per Draw(). */
 class TextWidget : public Widget {
 public:
+    /** @brief Bind read-only text.
+     *  @param bound Property which must outlive this widget.
+     */
     explicit TextWidget(mvvm::ObservableProperty<std::string>& bound);
+    /** @brief Submit the current value as unformatted ImGui text. */
     void Draw() override;
 
 private:
