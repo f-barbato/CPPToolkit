@@ -1,5 +1,9 @@
-# 0.1.0-b002
+# 0.1.0-b003
 
 ### Fixed
 
-- Fetch the full pinned vcpkg history in the release workflow so historical baselines and raylib 5.5 port trees are available.
+- Install the Autotools prerequisites required by pthread-stubs on Linux x64 and ARM64 release runners.
+
+### Added
+
+- Print vcpkg build diagnostics on installation failure and upload per-platform log artifacts.
