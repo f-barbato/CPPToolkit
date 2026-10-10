@@ -46,6 +46,9 @@ share a category header rather than duplicating one file per small wrapper.
 | `InputWidgets.h` | `InputIntWidget`, `InputFloatWidget`, `DragFloatWidget`, `SpinBoxWidget` | numeric property, `OnValueChanged` |
 | `InputWidgets.h` | `TextAreaWidget`, `PasswordWidget`, `SearchBoxWidget` | string, `OnTextChanged`, `readOnly` |
 | `InputWidgets.h` | `ColorPickerWidget` | `std::array<float,4>` RGBA, `OnColorChanged` |
+| `DateTimeWidgets.h` | `DatePickerWidget` | `Date` (`std::chrono::year_month_day`), `OnDateChanged` |
+| `DateTimeWidgets.h` | `TimePickerWidget` | `TimeOfDay` (`std::chrono::seconds` since midnight), `OnTimeChanged` |
+| `DateTimeWidgets.h` | `DateTimePickerWidget` | `DateTime` (civil date + time), `OnDateTimeChanged` |
 | `FeedbackWidgets.h` | `ProgressBarWidget`, `SpinnerWidget`, `BadgeWidget` | read-only progress, busy flag, status string |
 | `FeedbackWidgets.h` | `NotificationWidget` | message and open flag, `OnDismissed` |
 | `FeedbackWidgets.h` | `ImageWidget` | borrowed `ImTextureID` property; caller owns the texture |
@@ -163,6 +166,35 @@ clearing it). Programmatic `Set()` calls are reflected by polling during
 subscription to observe changes from any source. The property must outlive
 the widget. The UTF-8 input buffer grows automatically, without a fixed
 character limit.
+
+### Date and time pickers
+
+```cpp
+mvvm::ObservableProperty<ui::Date> date{
+    nullptr, "Date", {std::chrono::year{2026}, std::chrono::October, std::chrono::day{10}}};
+mvvm::ObservableProperty<ui::TimeOfDay> time{nullptr, "Time", std::chrono::seconds{12 * 3600}};
+mvvm::ObservableProperty<ui::DateTime> dateTime{nullptr, "DateTime", {date.Get(), time.Get()}};
+panel.Add<ui::DatePickerWidget>("Date", date).OnDateChanged = [](ui::Date selected) {
+    // React to a user-selected calendar day.
+};
+panel.Add<ui::TimePickerWidget>("Time", time);
+panel.Add<ui::DateTimePickerWidget>("Date and time", dateTime);
+```
+
+The calendar uses Monday-first weeks, an ISO `YYYY-MM-DD` preview, previous/next
+month buttons and direct month/year selection. Selecting a day closes it;
+browsing months does not alter the bound date. Valid Gregorian dates in years
+1-9999 are supported, including leap years. Time is 24-hour `HH:MM:SS`, stored
+as seconds since midnight in [0, 86399]. Edits and step buttons clamp each
+component independently, without carrying or wrapping; leap seconds are excluded.
+`DateTime` combines `date` and `time` in one property, committed atomically before
+`OnDateTimeChanged`. These are **civil values, not timestamps**: no time zone,
+UTC offset or daylight-saving conversion is inferred.
+
+All three expose `readOnly`, honor `Visible`, and support unbound constructors
+with a local initial value and optional callback. Invalid initial values throw
+`std::invalid_argument`; invalid programmatic values show a diagnostic without
+normalizing or notifying. Callbacks follow the binding rules above.
 
 ### Application
 

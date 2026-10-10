@@ -47,9 +47,15 @@ int main() {
     mvvm::ObservableProperty<std::string> text{nullptr, "Text", "Installed consumer"};
     mvvm::ObservableProperty<float> signal{nullptr, "Signal", 0.5f};
     mvvm::ObservableProperty<bool> checked{nullptr, "Checked", true};
+    mvvm::ObservableProperty<ui::Date> date{nullptr, "Date", ui::DateTime{}.date};
+    mvvm::ObservableProperty<ui::TimeOfDay> time{nullptr, "Time", ui::TimeOfDay{0}};
+    mvvm::ObservableProperty<ui::DateTime> dateTime{nullptr, "DateTime", ui::DateTime{}};
     ui::Panel panel;
     panel.Add<ui::TextBoxWidget>("Text", text);
     panel.Add<ui::CheckBoxWidget>("Enabled", checked);
+    panel.Add<ui::DatePickerWidget>("Date", date);
+    panel.Add<ui::TimePickerWidget>("Time", time);
+    panel.Add<ui::DateTimePickerWidget>("Date/time", dateTime);
     panel.Add<ui::PlotLineWidget>("Signal", signal);
     panel.Build();
     for (int frame = 0; frame < 3; ++frame) {

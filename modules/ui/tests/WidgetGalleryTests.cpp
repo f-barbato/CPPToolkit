@@ -111,6 +111,214 @@ TEST_F(WidgetGalleryTests, NotificationDismissesAfterUpdatingProperty) {
     EXPECT_EQ(calls, 1);
 }
 
+TEST_F(WidgetGalleryTests, DateTimePickersValidateCivilValues) {
+    using namespace std::chrono;
+    const ui::Date leap{year{2000}, February, day{29}};
+    EXPECT_NO_THROW((ui::DatePickerWidget("Leap", leap)));
+    for (const ui::Date invalid : {ui::Date{year{1900}, February, day{29}},
+                                  ui::Date{year{2024}, April, day{31}},
+                                  ui::Date{year{0}, January, day{1}},
+                                  ui::Date{year{10000}, January, day{1}}}) {
+        EXPECT_THROW((ui::DatePickerWidget("Invalid", invalid)), std::invalid_argument);
+        EXPECT_THROW((ui::DateTimePickerWidget("Invalid", ui::DateTime{invalid, seconds{0}})),
+                     std::invalid_argument);
+    }
+    for (const auto invalid : {seconds{-1}, seconds{86400}, seconds::max()}) {
+        EXPECT_THROW((ui::TimePickerWidget("Invalid", invalid)), std::invalid_argument);
+        EXPECT_THROW((ui::DateTimePickerWidget("Invalid", ui::DateTime{leap, invalid})),
+                     std::invalid_argument);
+    }
+    EXPECT_NO_THROW((ui::TimePickerWidget("Last second", seconds{86399})));
+}
+
+TEST_F(WidgetGalleryTests, TimePickerCommitsBeforeCallbackAndClampsWithoutCarrying) {
+    using namespace std::chrono;
+    mvvm::ObservableProperty<ui::TimeOfDay> time{nullptr, "Time", seconds{0}};
+    int calls = 0;
+    ui::TimePickerWidget picker("Time", time, [&](ui::TimeOfDay value) {
+        EXPECT_EQ(time.Get(), value);
+        ++calls;
+    });
+    const auto incrementSeconds = Draw(picker);
+    Click(picker, incrementSeconds);
+    EXPECT_EQ(time.Get(), seconds{1});
+    EXPECT_EQ(calls, 1);
+    time.Set(seconds{86398});
+    Draw(picker);
+    EXPECT_EQ(calls, 1);
+    Click(picker, incrementSeconds);
+    EXPECT_EQ(time.Get(), seconds{86399});
+    EXPECT_EQ(calls, 2);
+    Click(picker, incrementSeconds);
+    EXPECT_EQ(time.Get(), seconds{86399});
+    EXPECT_EQ(calls, 2);
+    picker.readOnly = true;
+    time.Set(seconds{0});
+    Click(picker, incrementSeconds);
+    EXPECT_EQ(time.Get(), seconds{0});
+    EXPECT_EQ(calls, 2);
+    picker.Visible = false;
+    picker.Draw();
+    EXPECT_EQ(calls, 2);
+}
+
+TEST_F(WidgetGalleryTests, DateTimePickerPreservesDateWhenEditingTimeAndSupportsLocalState) {
+    using namespace std::chrono;
+    const ui::Date date{year{2024}, February, day{29}};
+    mvvm::ObservableProperty<ui::DateTime> value{nullptr, "DateTime", {date, seconds{42}}};
+    int calls = 0;
+    ui::DateTimePickerWidget picker("Date/time", value, [&](const ui::DateTime& changed) {
+        EXPECT_EQ(value.Get(), changed);
+        EXPECT_EQ(changed.date, date);
+        ++calls;
+    });
+    const auto at = Draw(picker);
+    Click(picker, at);
+    EXPECT_EQ(value.Get().time, seconds{43});
+    EXPECT_EQ(calls, 1);
+    value.Set({date, seconds{10}});
+    Draw(picker);
+    EXPECT_EQ(calls, 1);
+    picker.readOnly = true;
+    Click(picker, at);
+    EXPECT_EQ(value.Get().time, seconds{10});
+    EXPECT_EQ(calls, 1);
+
+    ui::DateTime received;
+    ui::DateTimePickerWidget local("Local", ui::DateTime{date, seconds{0}},
+                                  [&](const ui::DateTime& edited) { received = edited; });
+    Click(local, Draw(local));
+    EXPECT_EQ(received, (ui::DateTime{date, seconds{1}}));
+    Click(local, Draw(local));
+    EXPECT_EQ(received.time, seconds{2});
+}
+
+TEST_F(WidgetGalleryTests, CalendarSelectsLeapDayAndOnlyNotifiesActualUserChanges) {
+    using namespace std::chrono;
+    const ui::Date leap{year{2024}, February, day{29}};
+    mvvm::ObservableProperty<ui::Date> date{nullptr, "Date", {year{2024}, February, day{28}}};
+    int calls = 0;
+    ui::DatePickerWidget picker("Calendar", date, [&](ui::Date changed) {
+        EXPECT_EQ(date.Get(), changed);
+        ++calls;
+    });
+    const auto open = Draw(picker);
+    Click(picker, open);
+    Draw(picker);
+    auto& tables = ImGui::GetCurrentContext()->Tables;
+    ASSERT_EQ(tables.GetAliveCount(), 1);
+    const auto* calendar = tables.GetByIndex(0);
+    ASSERT_EQ(calendar->ColumnsCount, 7);
+    const auto& thursday = calendar->Columns[3];
+    const ImVec2 day29(thursday.WorkMinX + 15,
+                      calendar->RowPosY1 + ImGui::GetFontSize() / 2);
+    Click(picker, day29);
+    EXPECT_EQ(date.Get(), leap);
+    EXPECT_EQ(calls, 1);
+    EXPECT_EQ(ImGui::GetCurrentContext()->OpenPopupStack.Size, 0);
+    Click(picker, open);
+    Draw(picker);
+    calendar = tables.GetByIndex(0);
+    const ImVec2 sameDay(calendar->Columns[3].WorkMinX + 15,
+                        calendar->RowPosY1 + ImGui::GetFontSize() / 2);
+    Click(picker, sameDay);
+    EXPECT_EQ(calls, 1);
+    date.Set({year{2000}, February, day{29}});
+    Draw(picker);
+    EXPECT_EQ(calls, 1);
+    picker.readOnly = true;
+    Click(picker, open);
+    EXPECT_EQ(ImGui::GetCurrentContext()->OpenPopupStack.Size, 0);
+}
+
+TEST_F(WidgetGalleryTests, CalendarsHandleMonthLengthsSixWeekRowsAndDateLimits) {
+    using namespace std::chrono;
+    const ui::Date lastDates[] = {
+        {year{1900}, February, day{28}}, {year{2000}, February, day{29}},
+        {year{2026}, August, day{31}}, {year{2026}, April, day{30}},
+        {year{1}, January, day{31}}, {year{9999}, December, day{31}}};
+    for (const auto lastDate : lastDates) {
+        const ui::Date first{lastDate.year(), lastDate.month(), day{1}};
+        ui::Date selected = first;
+        ui::DatePickerWidget local("Month", first, [&](ui::Date value) { selected = value; });
+        Click(local, Draw(local));
+        Draw(local);
+        auto& tables = ImGui::GetCurrentContext()->Tables;
+        ASSERT_EQ(tables.GetAliveCount(), 1);
+        const auto* table = tables.GetByIndex(0);
+        const auto column = weekday{sys_days{lastDate}}.iso_encoding() - 1;
+        const ImVec2 at(table->Columns[column].WorkMinX + 15,
+                       table->RowPosY1 + ImGui::GetFontSize() / 2);
+        Click(local, at);
+        EXPECT_EQ(selected, lastDate);
+        EXPECT_EQ(ImGui::GetCurrentContext()->OpenPopupStack.Size, 0);
+    }
+}
+
+TEST_F(WidgetGalleryTests, CombinedCalendarEditsPreserveTimeAndBrowsingDoesNotCommit) {
+    using namespace std::chrono;
+    const ui::Date initial{year{2024}, December, day{1}};
+    const auto time = seconds{45296};
+    mvvm::ObservableProperty<ui::DateTime> value{nullptr, "Both", {initial, time}};
+    int calls = 0;
+    ui::DateTimePickerWidget picker("Combined", value, [&](const ui::DateTime& edited) {
+        EXPECT_EQ(value.Get(), edited);
+        EXPECT_EQ(edited.time, time);
+        ++calls;
+    });
+    Draw(picker);
+    // The date combo is the first input, immediately below the widget label.
+    auto* host = ImGui::FindWindowByName("Gallery tests");
+    ASSERT_NE(host, nullptr);
+    const auto& style = ImGui::GetStyle();
+    const ImVec2 open(host->WorkRect.Min.x + 50,
+                      host->WorkRect.Min.y + ImGui::GetTextLineHeightWithSpacing() +
+                      ImGui::GetFrameHeight() / 2);
+    Click(picker, open);
+    Draw(picker);
+    auto& tables = ImGui::GetCurrentContext()->Tables;
+    ASSERT_EQ(tables.GetAliveCount(), 1);
+    auto* table = tables.GetByIndex(0);
+    const auto popupPosition = table->InnerWindow->Pos;
+    const float smallWidth = ImGui::CalcTextSize("<").x + 2 * style.FramePadding.x;
+    const ImVec2 next(popupPosition.x + style.WindowPadding.x + smallWidth +
+                      style.ItemSpacing.x + 80 + style.ItemInnerSpacing.x +
+                      ImGui::CalcTextSize("Year").x + style.ItemSpacing.x + smallWidth / 2,
+                      popupPosition.y + style.WindowPadding.y + ImGui::GetFrameHeight() / 2);
+    Click(picker, next);
+    EXPECT_EQ(value.Get(), (ui::DateTime{initial, time}));
+    EXPECT_EQ(calls, 0);
+    table = tables.GetByIndex(0);
+    const ui::Date lastDate{year{2025}, January, day{31}};
+    const auto column = weekday{sys_days{lastDate}}.iso_encoding() - 1;
+    Click(picker, ImVec2(table->Columns[column].WorkMinX + 15,
+                        table->RowPosY1 + ImGui::GetFontSize() / 2));
+    EXPECT_EQ(value.Get(), (ui::DateTime{lastDate, time}));
+    EXPECT_EQ(calls, 1);
+}
+
+TEST_F(WidgetGalleryTests, PickersDiagnoseInvalidProgrammaticValuesWithoutRewritingThem) {
+    using namespace std::chrono;
+    mvvm::ObservableProperty<ui::Date> date{nullptr, "Date", ui::DateTime{}.date};
+    mvvm::ObservableProperty<ui::TimeOfDay> time{nullptr, "Time", seconds{0}};
+    mvvm::ObservableProperty<ui::DateTime> dateTime{nullptr, "DateTime", ui::DateTime{}};
+    int calls = 0;
+    ui::DatePickerWidget datePicker("Date", date, [&](ui::Date) { ++calls; });
+    ui::TimePickerWidget timePicker("Time", time, [&](ui::TimeOfDay) { ++calls; });
+    ui::DateTimePickerWidget combined("Both", dateTime, [&](const ui::DateTime&) { ++calls; });
+    const ui::Date invalid{year{2025}, February, day{29}};
+    date.Set(invalid);
+    time.Set(seconds::max());
+    dateTime.Set({invalid, seconds{-1}});
+    Draw(datePicker);
+    Draw(timePicker);
+    Draw(combined);
+    EXPECT_EQ(date.Get(), invalid);
+    EXPECT_EQ(time.Get(), seconds::max());
+    EXPECT_EQ(dateTime.Get(), (ui::DateTime{invalid, seconds{-1}}));
+    EXPECT_EQ(calls, 0);
+}
+
 class CountingWidget : public ui::Widget {
 public:
     void Build() override { ++Builds; }

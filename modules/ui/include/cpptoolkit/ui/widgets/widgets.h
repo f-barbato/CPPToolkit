@@ -15,4 +15,5 @@
 #include "cpptoolkit/ui/widgets/NavigationWidgets.h"
 #include "cpptoolkit/ui/widgets/OverlayWidgets.h"
 #include "cpptoolkit/ui/widgets/InputWidgets.h"
+#include "cpptoolkit/ui/widgets/DateTimeWidgets.h"
 #include "cpptoolkit/ui/widgets/DockedPanel.h"

@@ -21,6 +21,11 @@ struct TestUIState : cpptoolkit::mvvm::ObservableObject {
     Property<std::string> Password{this, "Password", ""};
     Property<std::string> Search{this, "Search", ""};
     Property<std::array<float, 4>> Color{this, "Color", {0.2f, 0.6f, 1.0f, 1.0f}};
+    Property<cpptoolkit::ui::Date> Date{this, "Date",
+        {std::chrono::year{2026}, std::chrono::October, std::chrono::day{10}}};
+    Property<cpptoolkit::ui::TimeOfDay> Time{this, "Time", std::chrono::seconds{12 * 3600}};
+    Property<cpptoolkit::ui::DateTime> DateTime{this, "DateTime",
+        {Date.Get(), Time.Get()}};
     Property<bool> Busy{this, "Busy", true};
     Property<float> Progress{this, "Progress", 0};
     Property<std::string> Badge{this, "Badge", "Connected"};
@@ -96,6 +101,15 @@ inline void BuildInputExamples(cpptoolkit::ui::Panel& panel, TestUIState& vm) {
     });
     panel.Add<ui::SearchBoxWidget>("Search", vm.Search, [&vm](const std::string& search) {
         vm.LastEvent.Set("Search: " + search);
+    });
+    panel.Add<ui::DatePickerWidget>("Date", vm.Date, [&vm](ui::Date) {
+        vm.LastEvent.Set("Date changed");
+    });
+    panel.Add<ui::TimePickerWidget>("Time", vm.Time, [&vm](ui::TimeOfDay) {
+        vm.LastEvent.Set("Time changed");
+    });
+    panel.Add<ui::DateTimePickerWidget>("Date and time", vm.DateTime, [&vm](const ui::DateTime&) {
+        vm.LastEvent.Set("Date and time changed");
     });
     panel.Add<ui::ColorPickerWidget>("RGBA", vm.Color, [&vm](const std::array<float, 4>&) {
         vm.LastEvent.Set("Color changed");

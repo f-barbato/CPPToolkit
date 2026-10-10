@@ -83,6 +83,7 @@ set(UI_SOURCES
     src/widgets/NavigationWidgets.cpp
     src/widgets/OverlayWidgets.cpp
     src/widgets/InputWidgets.cpp
+    src/widgets/DateTimeWidgets.cpp
     src/widgets/TextWidget.cpp
     src/Application.cpp
 )
