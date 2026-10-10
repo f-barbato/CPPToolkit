@@ -86,6 +86,7 @@ jobs:
         with:
           repository: microsoft/vcpkg
           ref: 5dd2e1600d049b498ff9fb9fe15997533ae0c804
+          fetch-depth: 0
           path: build/vcpkg
       - uses: actions/cache@v4
         with:

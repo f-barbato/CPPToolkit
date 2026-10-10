@@ -182,9 +182,9 @@ Before creating a release tag:
 4. Commit those files, then create and push the tag:
 
 ```bash
-python scripts/release.py validate --tag release/0.1.0-b001
-git tag release/0.1.0-b001
-git push origin release/0.1.0-b001
+python scripts/release.py validate --tag release/0.1.0-b002
+git tag release/0.1.0-b002
+git push origin release/0.1.0-b002
 ```
 
 GitHub Release notes come **only from `CHANGELOG.md`**. The workflow checks that
