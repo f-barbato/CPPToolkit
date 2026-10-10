@@ -1,6 +1,6 @@
 # Release history
 
-## 0.1.0
+## 0.1.0-b001
 
 ### Added
 
