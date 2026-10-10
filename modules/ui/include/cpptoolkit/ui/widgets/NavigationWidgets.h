@@ -40,6 +40,8 @@ public:
     void Draw() override;
     /** @brief Build every tab panel, including inactive tabs. */
     void Build() override;
+    /** @brief Render every tab and direct child, including inactive tabs. */
+    void Render() override;
     /** @brief Tear down and release every tab and inherited direct child. */
     void Destroy() override;
     /** @brief User-tab-selection callback after property commit on the render thread. */

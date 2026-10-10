@@ -92,6 +92,8 @@ public:
     void Draw() override;
     /** @brief Build both pane trees and any inherited direct children. */
     void Build() override;
+    /** @brief Render both panes and direct children, regardless of display visibility. */
+    void Render() override;
     /** @brief Destroy both pane trees and inherited direct children. */
     void Destroy() override;
     /** @brief Access the first pane container.

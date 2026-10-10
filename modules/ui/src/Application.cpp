@@ -84,9 +84,17 @@ namespace cpptoolkit::ui {
 
     void Application::Draw() {
         BeginDrawing();
+        struct DrawingGuard {
+            ~DrawingGuard() { EndDrawing(); }
+        } drawingGuard;
         ClearBackground(this->_backgroundColor);
 
+        if (this->_rootView) this->_rootView->Render();
+
         rlImGuiBegin();
+        struct GuiGuard {
+            ~GuiGuard() { rlImGuiEnd(); }
+        } guiGuard;
 
         mvvm::Dispatcher::Main().ProcessPending();
 
@@ -94,9 +102,6 @@ namespace cpptoolkit::ui {
             this->_rootView->Draw();
         }
 
-        rlImGuiEnd();
-
-        EndDrawing();
     }
 
     Application& Application::SetConfigFlags(unsigned int configFlags) {

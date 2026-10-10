@@ -123,9 +123,28 @@ void SplitterWidget::Build() {
 }
 
 void SplitterWidget::Destroy() {
-    first_.Destroy();
-    second_.Destroy();
-    DestroyChildren();
+    std::exception_ptr failure;
+    for (auto* pane : {&first_, &second_}) {
+        try {
+            pane->Destroy();
+        } catch (...) {
+            if (!failure) failure = std::current_exception();
+        }
+    }
+    try {
+        DestroyChildren();
+    } catch (...) {
+        if (!failure) failure = std::current_exception();
+    }
+    if (failure) std::rethrow_exception(failure);
+}
+
+void SplitterWidget::Render() {
+    if (!RenderEnabled) return;
+    OnRender();
+    first_.Render();
+    second_.Render();
+    RenderChildren();
 }
 
 Panel& SplitterWidget::First() { return first_; }

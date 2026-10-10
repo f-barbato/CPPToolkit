@@ -51,6 +51,11 @@ int main() {
     mvvm::ObservableProperty<ui::TimeOfDay> time{nullptr, "Time", ui::TimeOfDay{0}};
     mvvm::ObservableProperty<ui::DateTime> dateTime{nullptr, "DateTime", ui::DateTime{}};
     ui::Panel panel;
+    ui::RenderTextureWidget framebuffer("Framebuffer API", 256, 240);
+    framebuffer.SetDisplaySize(ImVec2(512, 480));
+    require(framebuffer.GetDisplaySize().x == 512);
+    framebuffer.RenderEnabled = false;
+    framebuffer.Render();
     panel.Add<ui::TextBoxWidget>("Text", text);
     panel.Add<ui::CheckBoxWidget>("Enabled", checked);
     panel.Add<ui::DatePickerWidget>("Date", date);

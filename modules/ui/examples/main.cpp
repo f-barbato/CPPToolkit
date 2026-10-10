@@ -140,6 +140,20 @@ class EditorPanel : public ui::DockedPanel {
 protected:
     void OnBuild() override {
         Add<DemoPanel>();
+        auto& screen = Add<ui::Panel>("Raylib framebuffer");
+        auto* vm = GetViewModel<DemoViewModel>();
+        if (!vm) throw std::logic_error("Framebuffer demo requires DemoViewModel");
+        screen.Add<ui::SliderFloatWidget>("Framebuffer amplitude", vm->Amplitude, 0, 5);
+        auto& framebuffer = screen.Add<ui::RenderTextureWidget>("Shared ViewModel rendering", 320, 240,
+            [](ui::RenderTextureWidget& widget) {
+                auto* model = widget.GetViewModel<DemoViewModel>();
+                if (!model) throw std::logic_error("Framebuffer widget requires DemoViewModel");
+                const float value = model->SensorValue.Get();
+                DrawRectangle(0, 0, 320, 120, DARKBLUE);
+                DrawCircle(160 + static_cast<int>(value * 25), 120, 20, ORANGE);
+                DrawText("raylib + shared MVVM", 12, 200, 18, RAYWHITE);
+            });
+        framebuffer.SetDisplaySize(ImVec2(640, 480));
 #if defined(CPPTOOLKIT_UI_DEMO_HAS_NET)
         Add<SerialPanel>();
 #endif
@@ -150,9 +164,10 @@ class EditorView : public ui::View<DemoViewModel> {
 protected:
     void OnBuild() override { Add<EditorPanel>(); }
 public:
-    void Draw() override {
+    void Render() override {
+        if (!RenderEnabled) return;
         _viewModel->Tick(GetFrameTime());
-        Widget::Draw();
+        Widget::Render();
     }
 };
 

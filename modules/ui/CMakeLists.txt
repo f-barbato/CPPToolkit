@@ -84,6 +84,7 @@ set(UI_SOURCES
     src/widgets/OverlayWidgets.cpp
     src/widgets/InputWidgets.cpp
     src/widgets/DateTimeWidgets.cpp
+    src/widgets/RenderTextureWidget.cpp
     src/widgets/TextWidget.cpp
     src/Application.cpp
 )

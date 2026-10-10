@@ -7,6 +7,55 @@ A retained-mode layer on top of Dear ImGui (immediate-mode), data-bound to `mvvm
 - `Widget` — base class; `Draw()` is called every frame and is expected to issue the corresponding ImGui calls.
 - `Panel` — persistent container of child widgets (`Add<T>(...)`, `Remove(...)`). The widget tree is built once; only the values read in `Draw()` change frame to frame.
 
+### Raylib rendering stage
+
+The widget lifecycle is `PreBuild()` / `Build()`, then `Render()` and `Draw()`
+each frame, followed by `Destroy()` before graphics shutdown. `Application`
+clears the screen, calls the root's `Render()` inside the raylib drawing scope,
+then starts ImGui and calls `Draw()`. Backend frame scopes close even if a
+widget throws. `Dispatcher` remains inside the ImGui frame: dispatched changes
+are seen by the following frame's `Render()`.
+Standard containers complete all child teardown hooks and release ownership
+even if one hook fails, then rethrow the first exception for error reporting.
+
+Override `OnRender()` for direct raylib drawing or texture uploads. The default
+`Render()` calls that hook and recursively visits children, including tabs and
+splitter panes. This phase is independent of `Visible`, collapsed windows,
+closed popups and selected tabs. Set `RenderEnabled = false` to suspend a
+subtree explicitly. Rendering is not simulation: an emulator's clock/state
+must not depend on GUI visibility or one update per displayed frame.
+
+`RenderTextureWidget` owns a fixed-resolution `RenderTexture2D`. It creates it
+in `Build()`, clears and renders into it in `Render()`, displays it in `Draw()`
+with vertically corrected UVs, and releases it in `Destroy()` or destruction.
+The display size can change without reallocating the framebuffer. Its callback
+can access the same ambient ViewModel as sibling MVVM controls:
+
+```cpp
+// Inside OnBuild() of a View or container with an EmulatorViewModel context:
+auto& screen = Add<ui::RenderTextureWidget>("Console", 256, 240,
+    [](ui::RenderTextureWidget& widget) {
+        auto* vm = widget.GetViewModel<EmulatorViewModel>();
+        if (!vm) throw std::logic_error("Missing EmulatorViewModel");
+        // Issue raylib drawing calls based on vm's current state here.
+    });
+screen.SetDisplaySize(ImVec2(512, 480));
+```
+
+The callback runs with the offscreen target already active: do not call
+`BeginDrawing`/`EndDrawing`, change render targets, or call ImGui. Balance any
+camera/shader scopes you open. Child widgets render after the target is restored;
+they are not automatically drawn into this framebuffer. Texture creation,
+updates and release are render-thread-only, and destruction must happen before
+the raylib window closes. Resource-owning widgets are noncopyable.
+
+For a CPU-generated emulator framebuffer, a custom widget can upload a stable
+pixel snapshot in `OnRender()` and display the texture in `Draw()`. Keep GPU
+resources in the widget; keep emulation state in the model/ViewModel. Use proper
+snapshot synchronization or double buffering for background-produced pixels.
+The demo's separate "Raylib framebuffer" panel shares `DemoViewModel` with
+TestUI, so its amplitude slider controls both the plot and offscreen scene.
+
 `Panel()` remains an inline container, while `Panel("Title")` creates a closable
 ImGui window with configurable flags. `DockedPanel` enables docking and hosts
 child panels. Override `OnBuild()` to populate new widget trees; `Build()`
@@ -52,6 +101,7 @@ share a category header rather than duplicating one file per small wrapper.
 | `FeedbackWidgets.h` | `ProgressBarWidget`, `SpinnerWidget`, `BadgeWidget` | read-only progress, busy flag, status string |
 | `FeedbackWidgets.h` | `NotificationWidget` | message and open flag, `OnDismissed` |
 | `FeedbackWidgets.h` | `ImageWidget` | borrowed `ImTextureID` property; caller owns the texture |
+| `RenderTextureWidget.h` | `RenderTextureWidget` | owned raylib framebuffer, `OnRenderTexture`, ambient ViewModel |
 | `DataWidgets.h` | `SelectableWidget`, `TableWidget`, `TreeViewWidget` | selection properties, `OnSelectionChanged`; table also `OnSortRequested` |
 | `NavigationWidgets.h` | `TabBarWidget`, `BreadcrumbWidget` | selected index, `OnSelectionChanged` |
 | `NavigationWidgets.h` | `MenuBarWidget`, `MenuWidget`, `MenuItemWidget`, `ToolbarWidget` | retained menus/toolbars; items bind `Command` and expose `OnClick` |
@@ -220,3 +270,8 @@ ctest --test-dir build/all-modules-debug --output-on-failure
 ```
 
 See the root README for generating Doxygen documentation for every module.
+
+`RaylibRenderingTests` also exercises real GPU framebuffer content, flipped UVs,
+frame order and exceptional teardown. On Linux it requires an X11 display and
+skips when none is set; run with `xvfb-run -a ctest --test-dir <build-dir> -R
+RaylibRenderingTests --output-on-failure` for virtual-display validation.

@@ -165,7 +165,11 @@ protected:
      *  @return Running flag and absence of a window-close request.
      */
     bool IsRunning();
-    /** @brief Render one frame and draw the root. */
+    /** @brief Clear, invoke root Render() with raylib, then root Draw() with ImGui.
+     *  @note Render precedes Dispatcher processing, which remains inside the ImGui
+     *        frame. Dispatched changes therefore reach Render on the next frame.
+     *        Both backend frame scopes are closed even when a widget throws.
+     */
     virtual void Draw();
 
 private:

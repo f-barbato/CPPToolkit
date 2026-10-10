@@ -322,10 +322,121 @@ TEST_F(WidgetGalleryTests, PickersDiagnoseInvalidProgrammaticValuesWithoutRewrit
 class CountingWidget : public ui::Widget {
 public:
     void Build() override { ++Builds; }
+    void Render() override { if (RenderEnabled) ++Renders; }
     void Draw() override { ++Draws; ImGui::TextUnformatted("Child"); }
     void Destroy() override { ++Destroys; }
-    int Builds = 0, Draws = 0, Destroys = 0;
+    int Builds = 0, Renders = 0, Draws = 0, Destroys = 0;
 };
+
+TEST_F(WidgetGalleryTests, RenderTraversesHiddenInactiveAndSpecializedContainerChildren) {
+    mvvm::ObservableObject model;
+    ui::Panel root;
+    root.SetViewModel(&model);
+    root.Visible = false;
+    auto& hidden = root.Add<CountingWidget>();
+    hidden.Visible = false;
+    auto& disabled = root.Add<CountingWidget>();
+    disabled.RenderEnabled = false;
+    mvvm::ObservableProperty<int> selected{nullptr, "Tab", 0};
+    auto& tabs = root.Add<ui::TabBarWidget>("Tabs", selected);
+    auto& first = tabs.AddTab("First").Add<CountingWidget>();
+    auto& second = tabs.AddTab("Inactive").Add<CountingWidget>();
+    mvvm::ObservableProperty<float> extent{nullptr, "Extent", 100};
+    auto& splitter = root.Add<ui::SplitterWidget>("Split", extent);
+    auto& left = splitter.First().Add<CountingWidget>();
+    auto& right = splitter.Second().Add<CountingWidget>();
+    root.Build();
+    root.Render();
+    EXPECT_EQ(hidden.Renders, 1);
+    EXPECT_EQ(disabled.Renders, 0);
+    EXPECT_EQ(first.Renders, 1);
+    EXPECT_EQ(second.Renders, 1);
+    EXPECT_EQ(left.Renders, 1);
+    EXPECT_EQ(right.Renders, 1);
+    EXPECT_EQ(second.GetViewModel<mvvm::ObservableObject>(), &model);
+    tabs.RenderEnabled = false;
+    splitter.First().RenderEnabled = false;
+    root.Render();
+    EXPECT_EQ(first.Renders, 1);
+    EXPECT_EQ(second.Renders, 1);
+    EXPECT_EQ(left.Renders, 1);
+    EXPECT_EQ(right.Renders, 2);
+    root.RenderEnabled = false;
+    root.Render();
+    EXPECT_EQ(hidden.Renders, 2);
+    EXPECT_EQ(right.Renders, 2);
+}
+
+TEST_F(WidgetGalleryTests, RenderHookRunsBeforeChildrenWithoutStartingAnImGuiFrame) {
+    std::vector<int> order;
+    class RecordingWidget : public ui::Widget {
+    public:
+        RecordingWidget(std::vector<int>& order, int id) : order_(order), id_(id) {}
+    protected:
+        void OnRender() override {
+            EXPECT_FALSE(ImGui::GetCurrentContext()->WithinFrameScope);
+            order_.push_back(id_);
+        }
+    private:
+        std::vector<int>& order_;
+        int id_;
+    };
+    RecordingWidget root(order, 0);
+    auto& nested = root.Add<RecordingWidget>(order, 1);
+    nested.Add<RecordingWidget>(order, 2);
+    root.Add<RecordingWidget>(order, 3);
+    root.Render();
+    EXPECT_EQ(order, (std::vector<int>{0, 1, 2, 3}));
+}
+
+TEST_F(WidgetGalleryTests, TeardownContinuesThroughContainersAfterChildFailure) {
+    class FailingWidget : public ui::Widget {
+    public:
+        void Destroy() override { throw std::runtime_error("teardown failure"); }
+    };
+    class ReleasedWidget : public ui::Widget {
+    public:
+        explicit ReleasedWidget(int& count) : count_(count) {}
+        void Destroy() override { ++count_; }
+    private:
+        int& count_;
+    };
+    int released = 0;
+    ui::Panel root;
+    root.Add<FailingWidget>();
+    mvvm::ObservableProperty<int> selected{nullptr, "Tab", 0};
+    auto& tabs = root.Add<ui::TabBarWidget>("Tabs", selected);
+    tabs.AddTab("Fail").Add<FailingWidget>();
+    tabs.AddTab("Release").Add<ReleasedWidget>(released);
+    mvvm::ObservableProperty<float> size{nullptr, "Size", 100};
+    auto& splitter = root.Add<ui::SplitterWidget>("Panes", size);
+    splitter.First().Add<FailingWidget>();
+    splitter.Second().Add<ReleasedWidget>(released);
+    root.Add<ReleasedWidget>(released);
+    EXPECT_THROW(root.Destroy(), std::runtime_error);
+    EXPECT_EQ(released, 3);
+    EXPECT_NO_THROW(root.Destroy());
+    EXPECT_EQ(released, 3);
+}
+
+TEST_F(WidgetGalleryTests, RenderTextureRejectsInvalidConfigurationAndUnbuiltUse) {
+    EXPECT_THROW((ui::RenderTextureWidget("Bad", 0, 10)), std::invalid_argument);
+    EXPECT_THROW((ui::RenderTextureWidget("Bad", 10, -1)), std::invalid_argument);
+    ui::RenderTextureWidget widget("Target", 32, 24);
+    EXPECT_THROW(widget.SetDisplaySize(ImVec2(0, 10)), std::invalid_argument);
+    EXPECT_THROW(widget.SetDisplaySize(ImVec2(10, std::numeric_limits<float>::infinity())),
+                 std::invalid_argument);
+    EXPECT_THROW(widget.GetRenderTexture(), std::logic_error);
+    EXPECT_THROW(widget.Build(), std::logic_error);
+    EXPECT_THROW(widget.Render(), std::logic_error);
+    EXPECT_THROW(widget.Draw(), std::logic_error);
+    widget.RenderEnabled = false;
+    widget.Visible = false;
+    EXPECT_NO_THROW(widget.Render());
+    EXPECT_NO_THROW(widget.Draw());
+    widget.Destroy();
+    widget.Destroy();
+}
 
 TEST_F(WidgetGalleryTests, ContainersRespectVisibilityAndLifecycle) {
     ui::StackPanel stack(ui::Orientation::Horizontal);

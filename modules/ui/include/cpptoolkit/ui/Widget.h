@@ -9,6 +9,7 @@
 #include <memory>
 #include <algorithm>
 #include <utility>
+#include <exception>
 
 #include <imgui.h>
 #include <raylib.h>
@@ -23,7 +24,7 @@ class Application;
 /**
  * @brief Base class owning a persistent tree of immediate-mode widgets.
  *
- * Build(), Draw(), Destroy(), child mutations and event assignments must run
+ * Build(), Render(), Draw(), Destroy(), child mutations and event assignments must run
  * on the render thread. Defer tree mutations until the current traversal has
  * finished. A child's references to properties/commands are borrowed.
  */
@@ -42,6 +43,17 @@ public:
     virtual void Build() {
         OnBuild();
         BuildChildren();
+    }
+
+    /** @brief Prepare graphics and visit render-enabled children before the ImGui frame.
+     *  @note Called inside raylib BeginDrawing()/EndDrawing(). No ImGui calls are
+     *        allowed here. Visible, collapsed windows and inactive tabs do not gate
+     *        this phase; use RenderEnabled to suspend a subtree explicitly.
+     */
+    virtual void Render() {
+        if (!RenderEnabled) return;
+        OnRender();
+        RenderChildren();
     }
 
     /**
@@ -123,6 +135,11 @@ protected:
     /** @brief Hook for adding children before recursive construction. */
     virtual void OnBuild() {}
 
+    /** @brief Optional raylib rendering/texture-update hook before child rendering.
+     *  @note Does not advance application simulation automatically.
+     */
+    virtual void OnRender() {}
+
     /** @brief Visit visible direct children in insertion order.
      *  @tparam Action Callable accepting a Widget reference.
      *  @param action Visitor; must not mutate this child collection while iterating.
@@ -148,19 +165,36 @@ protected:
         for (auto& child : children_) {
             if (child->Visible) child->Draw();
         }
+
     }
 
-    /** @brief Invoke child teardown hooks before destroying the children. */
-    void DestroyChildren() {
+    /** @brief Render direct children in insertion order, independently of Visible. */
+    void RenderChildren() {
         for (auto& child : children_) {
-            child->Destroy();
+            if (child->RenderEnabled) child->Render();
+        }
+    }
+
+    /** @brief Tear down every child, release ownership, then rethrow the first failure. */
+    void DestroyChildren() {
+        std::exception_ptr failure;
+        for (auto& child : children_) {
+            try {
+                child->Destroy();
+            } catch (...) {
+                if (!failure) failure = std::current_exception();
+            }
         }
         children_.clear();
+        if (failure) std::rethrow_exception(failure);
     }
 
 public:
     /** @brief Whether parent traversal submits this widget for drawing. */
     bool Visible = true;
+
+    /** @brief Whether the pre-ImGui render phase visits this widget and its subtree. */
+    bool RenderEnabled = true;
 
 private:
     std::vector<std::unique_ptr<Widget>> children_;

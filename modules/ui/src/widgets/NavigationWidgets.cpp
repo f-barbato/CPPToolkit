@@ -59,9 +59,28 @@ void TabBarWidget::Build() {
 }
 
 void TabBarWidget::Destroy() {
-    for (auto& tab : tabs_) tab.Content->Destroy();
+    std::exception_ptr failure;
+    for (auto& tab : tabs_) {
+        try {
+            tab.Content->Destroy();
+        } catch (...) {
+            if (!failure) failure = std::current_exception();
+        }
+    }
     tabs_.clear();
-    DestroyChildren();
+    try {
+        DestroyChildren();
+    } catch (...) {
+        if (!failure) failure = std::current_exception();
+    }
+    if (failure) std::rethrow_exception(failure);
+}
+
+void TabBarWidget::Render() {
+    if (!RenderEnabled) return;
+    OnRender();
+    for (auto& tab : tabs_) tab.Content->Render();
+    RenderChildren();
 }
 
 MenuBarWidget::MenuBarWidget(bool mainMenu) : mainMenu_(mainMenu) {}
