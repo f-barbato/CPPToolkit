@@ -1,0 +1,174 @@
+name: Shared library release
+
+on:
+  push:
+    tags:
+      - 'release/*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+      prerelease: ${{ steps.validate.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - id: validate
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python -m unittest discover -s scripts -p 'test_release.py'
+          python scripts/release.py validate --tag "$RELEASE_TAG"
+
+  build:
+    needs: metadata
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            system: Linux
+            arch: x64
+            triplet: x64-linux-dynamic
+          - runner: ubuntu-24.04-arm
+            system: Linux
+            arch: arm64
+            triplet: arm64-linux-dynamic
+          - runner: windows-2022
+            system: Windows
+            arch: x64
+            triplet: x64-windows
+          - runner: windows-11-arm
+            system: Windows
+            arch: arm64
+            triplet: arm64-windows
+          - runner: macos-15-intel
+            system: Darwin
+            arch: x64
+            triplet: x64-osx-dynamic
+          - runner: macos-15
+            system: Darwin
+            arch: arm64
+            triplet: arm64-osx-dynamic
+    runs-on: ${{ matrix.runner }}
+    env:
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/build/vcpkg-cache,readwrite
+      RELEASE_TAG: ${{ github.ref_name }}
+      TARGET_TRIPLET: ${{ matrix.triplet }}
+      TARGET_SYSTEM: ${{ matrix.system }}
+      TARGET_ARCH: ${{ matrix.arch }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Linux graphics build dependencies
+        if: matrix.system == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ninja-build pkg-config libgl1-mesa-dev \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+      - name: Fetch pinned vcpkg
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: 5dd2e1600d049b498ff9fb9fe15997533ae0c804
+          path: build/vcpkg
+      - uses: actions/cache@v4
+        with:
+          path: build/vcpkg-cache
+          key: release-${{ matrix.triplet }}-${{ hashFiles('ports/**', 'triplets/**', 'packaging/release/vcpkg.json', 'vcpkg.json') }}-${{ github.sha }}
+      - name: Bootstrap vcpkg
+        run: |
+          if [[ "$TARGET_SYSTEM" == Windows ]]; then
+            build/vcpkg/bootstrap-vcpkg.bat -disableMetrics
+          else
+            build/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          fi
+      - name: Build shared modules and dependencies
+        run: |
+          build/vcpkg/vcpkg install \
+            --x-manifest-root="$GITHUB_WORKSPACE/packaging/release" \
+            --x-install-root="$GITHUB_WORKSPACE/build/release-installed" \
+            --overlay-ports="$GITHUB_WORKSPACE/ports" \
+            --overlay-triplets="$GITHUB_WORKSPACE/triplets" \
+            --triplet="$TARGET_TRIPLET" --host-triplet="$TARGET_TRIPLET"
+      - name: Stage dist and create ZIP
+        run: |
+          python scripts/release.py package --tag "$RELEASE_TAG" \
+            --installed build/release-installed --system "$TARGET_SYSTEM" --arch "$TARGET_ARCH"
+      - name: Verify installed package without the vcpkg toolchain
+        run: |
+          python -m zipfile -e build/release-archives/*.zip build/release-unpacked
+          PREFIX="$GITHUB_WORKSPACE/build/release-unpacked/dist/Release/$TARGET_SYSTEM/$TARGET_ARCH"
+          generator=()
+          if [[ "$TARGET_SYSTEM" == Windows ]]; then
+            if [[ "$TARGET_ARCH" == arm64 ]]; then
+              generator=(-A ARM64)
+            else
+              generator=(-A x64)
+            fi
+          fi
+          cmake -S tests/package-consumer -B build/release-consumer \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$PREFIX" \
+            -DCPPTOOLKIT_CONSUMER_UI=ON "${generator[@]}"
+          cmake --build build/release-consumer --config Release --parallel 2
+          export LD_LIBRARY_PATH="$PREFIX/lib:${LD_LIBRARY_PATH:-}"
+          export DYLD_LIBRARY_PATH="$PREFIX/lib:${DYLD_LIBRARY_PATH:-}"
+          export PATH="$PREFIX/bin:$PATH"
+          ctest --test-dir build/release-consumer -C Release --output-on-failure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shared-${{ matrix.system }}-${{ matrix.arch }}
+          path: |
+            build/release-archives/*.zip
+            build/release-archives/*.sha256
+          if-no-files-found: error
+
+  publish:
+    needs: [metadata, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+      PRERELEASE: ${{ needs.metadata.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: shared-*
+          path: build/release-archives
+          merge-multiple: true
+      - name: Publish validated archives with current changelog only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find build/release-archives -name '*.zip' | wc -l)" -eq 6
+          cd build/release-archives
+          sha256sum --check ./*.sha256
+          cd ../..
+          flags=(--verify-tag --title "CPPToolkit $RELEASE_VERSION" --notes-file CHANGELOG.md)
+          if [[ "$PRERELEASE" == true ]]; then
+            flags+=(--prerelease --latest=false)
+          else
+            flags+=(--latest)
+          fi
+          gh release create "$RELEASE_TAG" build/release-archives/*.zip \
+            build/release-archives/*.sha256 "${flags[@]}"

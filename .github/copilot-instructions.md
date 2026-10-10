@@ -30,6 +30,7 @@ Module dependency rules established so far:
 - Feature → CMake option mapping done via `vcpkg_check_features()` in `portfile.cmake`.
 - Compiled modules support static/shared builds via `BUILD_SHARED_LIBS`; the port sets it from `VCPKG_LIBRARY_LINKAGE`. `GenerateExportHeader` provides module `Export.h` headers and Windows API annotations. Header-only modules remain `INTERFACE`; the package exports one library per compiled module.
 - Consumers use the complete `ports/` overlay: local ImGui/ImPlot ports preserve upstream features while adding shared linkage and DLL export headers, avoiding duplicated GUI contexts across DLL boundaries. `triplets/x64-linux-dynamic.cmake` enables Linux dynamic builds; Windows uses `x64-windows`. `tests/package-consumer/` exercises the installed package independently.
+- `.github/workflows/release.yml` publishes six native shared Release ZIPs (Linux/Windows/macOS, x64/ARM64) on validated `release/<major.minor.patch[-aNNN|-bNNN]>` tags. `packaging/release/` builds all modules except optional BLE with pinned vcpkg. Archives preserve `dist/Release/<OS>/<arch>/` and bundle release dependencies/licenses. `CHANGELOG.md` contains only the current release; `HISTORY.md` retains matching historical entries. Publication waits for all installed-consumer checks.
 
 ### Repository / module layout
 Every module follows the same structure:

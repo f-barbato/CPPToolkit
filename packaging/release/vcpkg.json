@@ -1,0 +1,15 @@
+{
+  "name": "cpptoolkit-release",
+  "version": "0.1.0",
+  "builtin-baseline": "19780d9cdf84d0944cf9a318666703b89ab6629c",
+  "dependencies": [
+    {
+      "name": "cpptoolkit",
+      "default-features": false,
+      "features": ["platform", "struct", "mvvm", "algo", "net", "ui", "ui-net-widgets"]
+    }
+  ],
+  "overrides": [
+    { "name": "raylib", "version": "5.5" }
+  ]
+}
