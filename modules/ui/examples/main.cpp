@@ -136,13 +136,48 @@ private:
 };
 #endif
 
-class EditorPanel : public ui::DockedPanel {
+class EditorPanel : public ui::EditorLayoutWidget {
+public:
+    EditorPanel() : ui::EditorLayoutWidget("Editor", ui::EditorLayout::LeftFullHeight) {}
 protected:
     void OnBuild() override {
+        Left().Add<ui::TextWidget>("Project / devices");
+        Right().Add<ui::TextWidget>("Properties");
+        Top().Add<ui::TextWidget>("CPPToolkit editor workspace");
+        Bottom().Add<ui::TextWidget>("Output / diagnostics");
         Add<DemoPanel>();
-        auto& screen = Add<ui::Panel>("Raylib framebuffer");
+        auto& screen = Center();
         auto* vm = GetViewModel<DemoViewModel>();
         if (!vm) throw std::logic_error("Framebuffer demo requires DemoViewModel");
+        Right().Add<ui::SliderFloatWidget>("Amplitude", vm->Amplitude, 0, 5);
+        Top().Add<ui::ButtonWidget>("Reset phase", vm->ResetCommand);
+        auto& controls = Add<ui::Panel>("Editor layout controls");
+        controls.Add<ui::TextWidget>("Layout presets");
+        controls.Add<ui::ButtonWidget>("Full-height left", [this] {
+            SetLayout(ui::EditorLayout::LeftFullHeight);
+        });
+        controls.Add<ui::ButtonWidget>("Full-height right", [this] {
+            SetLayout(ui::EditorLayout::RightFullHeight);
+        });
+        controls.Add<ui::ButtonWidget>("Full-height sidebars", [this] {
+            SetLayout(ui::EditorLayout::SidebarsFullHeight);
+        });
+        controls.Add<ui::ButtonWidget>("Full-width top and bottom", [this] {
+            SetLayout(ui::EditorLayout::TopBottomFullWidth);
+        });
+        controls.Add<ui::TextWidget>("Show / hide panels");
+        for (const auto& [label, region] : {
+                 std::pair{"Toggle left", ui::EditorRegion::Left},
+                 std::pair{"Toggle right", ui::EditorRegion::Right},
+                 std::pair{"Toggle top", ui::EditorRegion::Top},
+                 std::pair{"Toggle bottom", ui::EditorRegion::Bottom},
+                 std::pair{"Toggle center", ui::EditorRegion::Center}}) {
+            controls.Add<ui::ButtonWidget>(label, [this, region] {
+                SetPanelVisible(region, !IsPanelVisible(region));
+            });
+        }
+        controls.Add<ui::ButtonWidget>("Reset layout and show all panels", [this] { ResetLayout(); });
+        Bottom().Add<ui::TextWidget>(vm->Status);
         screen.Add<ui::SliderFloatWidget>("Framebuffer amplitude", vm->Amplitude, 0, 5);
         auto& framebuffer = screen.Add<ui::RenderTextureWidget>("Shared ViewModel rendering", 320, 240,
             [](ui::RenderTextureWidget& widget) {

@@ -7,6 +7,53 @@ A retained-mode layer on top of Dear ImGui (immediate-mode), data-bound to `mvvm
 - `Widget` — base class; `Draw()` is called every frame and is expected to issue the corresponding ImGui calls.
 - `Panel` — persistent container of child widgets (`Add<T>(...)`, `Remove(...)`). The widget tree is built once; only the values read in `Draw()` change frame to frame.
 
+### Editor workspace
+
+`EditorLayoutWidget` creates a dockable viewport workspace with `Left()`,
+`Right()`, `Top()`, `Bottom()` and `Center()` panel accessors. Select an
+`EditorLayout` preset at construction or with `SetLayout()`. Populate them with the
+usual widgets, all sharing the ambient ViewModel and rendering lifecycle:
+
+```cpp
+auto& editor = Add<ui::EditorLayoutWidget>("Main editor", ui::EditorLayout::LeftFullHeight);
+editor.Left().Add<ui::TextWidget>("Project");
+editor.Right().Add<ui::SliderFloatWidget>("Speed", vm.Speed, 0.1f, 4.0f);
+editor.Top().Add<ui::ButtonWidget>("Pause", vm.Pause);
+editor.Bottom().Add<ui::TextWidget>(vm.Status);
+editor.Center().Add<ui::RenderTextureWidget>("Screen", 256, 240, renderScreen);
+editor.SetPanelVisible(ui::EditorRegion::Right, false);
+```
+
+| `EditorLayout` preset | Initial arrangement |
+|---|---|
+| `TopBottomFullWidth` (default) | Top/bottom span the width; sidebars flank the center |
+| `LeftFullHeight` | Left spans the height; top/bottom start beside it |
+| `RightFullHeight` | Right spans the height; top/bottom end beside it |
+| `SidebarsFullHeight` | Both sidebars span the height; top/bottom lie between them |
+
+`SetLayout()` rebuilds docking on the next visible frame only when the preset
+changes, preserving panel visibility. `GetLayout()` reports the selected preset,
+not later user-adjusted positions. `SetPanelVisible(region, false)` hides/closes
+an area; `true` shows/reopens it. `IsPanelVisible()` also reflects closing a panel
+with its window button, independently of the workspace's own `Visible` flag.
+These methods do not change `RenderEnabled`. Empty docking areas are reclaimed
+by ImGui when their windows are closed; reopening retains their docking IDs.
+
+TestUI includes a separate **Editor layout controls** window with buttons for
+all four presets, visibility toggles for each of the five panels and a layout
+reset. This window is independent of the five areas, so hiding the top panel
+does not remove access to the controls.
+
+The initial layout is created only when no docking node exists. ImGui ini
+settings preserve later resizing/docking; `ResetLayout()` restores the defaults
+and reopens the five panels on the next visible frame. Use a stable unique
+workspace identifier and one visible viewport workspace at a time.
+Saved docking settings take precedence over the constructor preset; use
+`ResetLayout()` to apply the configured preset to an existing saved workspace.
+Keep the `###` ID suffix when changing a panel's display title via `SetTitle()`.
+Closing/hiding panels affects `Draw()`, not the pre-ImGui `Render()` phase;
+`RenderEnabled` controls the latter. Inherited `Add()` can host extra windows.
+
 ### Raylib rendering stage
 
 The widget lifecycle is `PreBuild()` / `Build()`, then `Render()` and `Draw()`
@@ -102,6 +149,7 @@ share a category header rather than duplicating one file per small wrapper.
 | `FeedbackWidgets.h` | `NotificationWidget` | message and open flag, `OnDismissed` |
 | `FeedbackWidgets.h` | `ImageWidget` | borrowed `ImTextureID` property; caller owns the texture |
 | `RenderTextureWidget.h` | `RenderTextureWidget` | owned raylib framebuffer, `OnRenderTexture`, ambient ViewModel |
+| `EditorLayoutWidget.h` | `EditorLayoutWidget` | five dockable panels, ambient ViewModel, `ResetLayout()` |
 | `DataWidgets.h` | `SelectableWidget`, `TableWidget`, `TreeViewWidget` | selection properties, `OnSelectionChanged`; table also `OnSortRequested` |
 | `NavigationWidgets.h` | `TabBarWidget`, `BreadcrumbWidget` | selected index, `OnSelectionChanged` |
 | `NavigationWidgets.h` | `MenuBarWidget`, `MenuWidget`, `MenuItemWidget`, `ToolbarWidget` | retained menus/toolbars; items bind `Command` and expose `OnClick` |

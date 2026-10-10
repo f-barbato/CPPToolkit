@@ -438,6 +438,150 @@ TEST_F(WidgetGalleryTests, RenderTextureRejectsInvalidConfigurationAndUnbuiltUse
     widget.Destroy();
 }
 
+TEST_F(WidgetGalleryTests, EditorWorkspaceCreatesFiveAreasAndPreservesLayoutUntilReset) {
+    EXPECT_THROW(ui::EditorLayoutWidget(""), std::invalid_argument);
+    mvvm::ObservableObject model;
+    ui::EditorLayoutWidget workspace("Test workspace");
+    workspace.SetViewModel(&model);
+    workspace.PreBuild();
+    auto& left = workspace.Left().Add<CountingWidget>();
+    auto& right = workspace.Right().Add<CountingWidget>();
+    auto& top = workspace.Top().Add<CountingWidget>();
+    auto& bottom = workspace.Bottom().Add<CountingWidget>();
+    auto& center = workspace.Center().Add<CountingWidget>();
+    workspace.Build();
+    workspace.Visible = false;
+    Draw(workspace);
+    workspace.Visible = true;
+    for (int frame = 0; frame < 4; ++frame) Draw(workspace);
+    auto* l = ImGui::FindWindowByName(workspace.Left().GetTitle().c_str());
+    auto* r = ImGui::FindWindowByName(workspace.Right().GetTitle().c_str());
+    auto* t = ImGui::FindWindowByName(workspace.Top().GetTitle().c_str());
+    auto* b = ImGui::FindWindowByName(workspace.Bottom().GetTitle().c_str());
+    auto* c = ImGui::FindWindowByName(workspace.Center().GetTitle().c_str());
+    ASSERT_NE(l, nullptr);
+    ASSERT_NE(r, nullptr);
+    ASSERT_NE(t, nullptr);
+    ASSERT_NE(b, nullptr);
+    ASSERT_NE(c, nullptr);
+    EXPECT_NE(l->DockId, 0u);
+    EXPECT_LT(l->Pos.x, c->Pos.x);
+    EXPECT_GT(r->Pos.x, c->Pos.x);
+    EXPECT_LT(t->Pos.y, c->Pos.y);
+    EXPECT_GT(b->Pos.y, c->Pos.y);
+    EXPECT_GT(left.Draws, 0);
+    EXPECT_GT(right.Draws, 0);
+    EXPECT_GT(top.Draws, 0);
+    EXPECT_GT(bottom.Draws, 0);
+    EXPECT_GT(center.Draws, 0);
+    EXPECT_EQ(center.GetViewModel<mvvm::ObservableObject>(), &model);
+    const auto original = l->DockId;
+    ImGui::DockBuilderDockWindow(l->Name, c->DockId);
+    for (int frame = 0; frame < 3; ++frame) Draw(workspace);
+    EXPECT_EQ(l->DockId, c->DockId);
+    workspace.Left().SetOpen(false);
+    workspace.Visible = false;
+    workspace.Render();
+    EXPECT_EQ(left.Renders, 1);
+    Draw(workspace);
+    workspace.Visible = true;
+    Draw(workspace);
+    EXPECT_FALSE(workspace.Left().IsOpen());
+    workspace.ResetLayout();
+    for (int frame = 0; frame < 3; ++frame) Draw(workspace);
+    EXPECT_TRUE(workspace.Left().IsOpen());
+    EXPECT_EQ(l->DockId, original);
+    EXPECT_NE(l->DockId, c->DockId);
+    workspace.Destroy();
+}
+
+TEST_F(WidgetGalleryTests, EditorPresetsControlSidebarExtentsAndPreserveVisibility) {
+    ui::EditorLayoutWidget workspace("Preset tests", ui::EditorLayout::LeftFullHeight);
+    workspace.PreBuild();
+    auto& bottomChild = workspace.Bottom().Add<CountingWidget>();
+    workspace.Build();
+    const auto drawFrames = [&] {
+        for (int frame = 0; frame < 4; ++frame) Draw(workspace);
+    };
+    for (auto layout : {ui::EditorLayout::LeftFullHeight, ui::EditorLayout::RightFullHeight,
+                        ui::EditorLayout::SidebarsFullHeight, ui::EditorLayout::TopBottomFullWidth}) {
+        workspace.SetLayout(layout);
+        drawFrames();
+        EXPECT_EQ(workspace.GetLayout(), layout);
+        auto* left = ImGui::FindWindowByName(workspace.Left().GetTitle().c_str());
+        auto* right = ImGui::FindWindowByName(workspace.Right().GetTitle().c_str());
+        auto* bottom = ImGui::FindWindowByName(workspace.Bottom().GetTitle().c_str());
+        auto* top = ImGui::FindWindowByName(workspace.Top().GetTitle().c_str());
+        ASSERT_NE(left, nullptr);
+        ASSERT_NE(right, nullptr);
+        ASSERT_NE(bottom, nullptr);
+        ASSERT_NE(top, nullptr);
+        const auto* viewport = ImGui::GetMainViewport();
+        if (layout == ui::EditorLayout::LeftFullHeight || layout == ui::EditorLayout::SidebarsFullHeight) {
+            EXPECT_NEAR(left->Pos.y, viewport->WorkPos.y, 1);
+            EXPECT_NEAR(left->Pos.y + left->Size.y, viewport->WorkPos.y + viewport->WorkSize.y, 1);
+            EXPECT_GE(bottom->Pos.x, left->Pos.x + left->Size.x);
+            EXPECT_GE(top->Pos.x, left->Pos.x + left->Size.x);
+        }
+        if (layout == ui::EditorLayout::RightFullHeight || layout == ui::EditorLayout::SidebarsFullHeight) {
+            EXPECT_NEAR(right->Pos.y, viewport->WorkPos.y, 1);
+            EXPECT_NEAR(right->Pos.y + right->Size.y, viewport->WorkPos.y + viewport->WorkSize.y, 1);
+            EXPECT_LE(bottom->Pos.x + bottom->Size.x, right->Pos.x);
+            EXPECT_LE(top->Pos.x + top->Size.x, right->Pos.x);
+        }
+        if (layout == ui::EditorLayout::TopBottomFullWidth) {
+            EXPECT_NEAR(bottom->Pos.x, viewport->WorkPos.x, 1);
+            EXPECT_NEAR(bottom->Size.x, viewport->WorkSize.x, 1);
+        }
+    }
+    for (auto region : {ui::EditorRegion::Left, ui::EditorRegion::Right, ui::EditorRegion::Top,
+                        ui::EditorRegion::Bottom, ui::EditorRegion::Center}) {
+        workspace.SetPanelVisible(region, false);
+        drawFrames();
+        EXPECT_FALSE(workspace.IsPanelVisible(region));
+        workspace.SetLayout(ui::EditorLayout::LeftFullHeight);
+        drawFrames();
+        EXPECT_FALSE(workspace.IsPanelVisible(region));
+        workspace.SetPanelVisible(region, true);
+        drawFrames();
+        EXPECT_TRUE(workspace.IsPanelVisible(region));
+        workspace.SetLayout(ui::EditorLayout::TopBottomFullWidth);
+    }
+    workspace.Bottom().SetOpen(false);
+    EXPECT_FALSE(workspace.IsPanelVisible(ui::EditorRegion::Bottom));
+    workspace.SetPanelVisible(ui::EditorRegion::Bottom, true);
+    EXPECT_TRUE(workspace.Bottom().IsOpen());
+    workspace.SetPanelVisible(ui::EditorRegion::Left, false);
+    EXPECT_TRUE(workspace.Left().RenderEnabled);
+    workspace.ResetLayout();
+    drawFrames();
+    EXPECT_TRUE(workspace.IsPanelVisible(ui::EditorRegion::Left));
+    workspace.SetLayout(ui::EditorLayout::LeftFullHeight);
+    drawFrames();
+    const auto* centerWindow = ImGui::FindWindowByName(workspace.Center().GetTitle().c_str());
+    ASSERT_NE(centerWindow, nullptr);
+    const float originalCenterHeight = centerWindow->Size.y;
+    const int draws = bottomChild.Draws;
+    workspace.SetPanelVisible(ui::EditorRegion::Bottom, false);
+    drawFrames();
+    EXPECT_EQ(bottomChild.Draws, draws);
+    EXPECT_GT(centerWindow->Size.y, originalCenterHeight);
+    const int renders = bottomChild.Renders;
+    workspace.Render();
+    EXPECT_EQ(bottomChild.Renders, renders + 1);
+    workspace.SetPanelVisible(ui::EditorRegion::Bottom, true);
+    drawFrames();
+    EXPECT_GT(bottomChild.Draws, draws);
+    EXPECT_NEAR(centerWindow->Size.y, originalCenterHeight, 1);
+    EXPECT_THROW(workspace.SetLayout(static_cast<ui::EditorLayout>(-1)), std::invalid_argument);
+    EXPECT_THROW((ui::EditorLayoutWidget("Bad", static_cast<ui::EditorLayout>(-1))),
+                 std::invalid_argument);
+    EXPECT_THROW(workspace.SetPanelVisible(static_cast<ui::EditorRegion>(-1), true),
+                 std::invalid_argument);
+    EXPECT_THROW(workspace.IsPanelVisible(static_cast<ui::EditorRegion>(-1)), std::invalid_argument);
+    workspace.Destroy();
+}
+
 TEST_F(WidgetGalleryTests, ContainersRespectVisibilityAndLifecycle) {
     ui::StackPanel stack(ui::Orientation::Horizontal);
     auto& visible = stack.Add<CountingWidget>();

@@ -58,6 +58,11 @@ int main() {
     framebuffer.Render();
     panel.Add<ui::TextBoxWidget>("Text", text);
     panel.Add<ui::CheckBoxWidget>("Enabled", checked);
+    auto& editor = panel.Add<ui::EditorLayoutWidget>("Installed editor");
+    editor.SetLayout(ui::EditorLayout::LeftFullHeight);
+    editor.SetPanelVisible(ui::EditorRegion::Right, false);
+    require(!editor.IsPanelVisible(ui::EditorRegion::Right));
+    editor.Center().Add<ui::TextWidget>(text);
     panel.Add<ui::DatePickerWidget>("Date", date);
     panel.Add<ui::TimePickerWidget>("Time", time);
     panel.Add<ui::DateTimePickerWidget>("Date/time", dateTime);
