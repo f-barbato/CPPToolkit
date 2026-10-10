@@ -23,7 +23,7 @@ namespace cpptoolkit::ui {
  * Programmatic selection changes are applied without user callbacks.
  * Populate AddTab() panels rather than inherited direct children.
  */
-class TabBarWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT TabBarWidget : public Widget {
 public:
     /** @brief Bind tab selection.
      *  @param label ImGui tab-bar ID.
@@ -59,7 +59,7 @@ private:
 /** @brief Container for MenuWidget children in a main or window menu bar.
  *  @note Window menu bars require ImGuiWindowFlags_MenuBar on their host window.
  */
-class MenuBarWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT MenuBarWidget : public Widget {
 public:
     /** @brief Choose menu-bar placement.
      *  @param mainMenu True for the application-wide main menu bar.
@@ -73,7 +73,7 @@ private:
 };
 
 /** @brief Menu or submenu owning its item widgets. */
-class MenuWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT MenuWidget : public Widget {
 public:
     /** @brief Set the menu heading.
      *  @param label ImGui menu heading and ID.
@@ -91,7 +91,7 @@ private:
 /** @brief Menu action bound to a borrowed Command.
  *  @note The command must outlive the widget. CanExecute() controls enabled state.
  */
-class MenuItemWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT MenuItemWidget : public Widget {
 public:
     /** @brief Bind a menu item.
      *  @param label Item heading and ID.
@@ -111,7 +111,7 @@ private:
 };
 
 /** @brief Horizontal StackPanel intended to contain command buttons and controls. */
-class ToolbarWidget : public StackPanel {
+class CPPTOOLKIT_UI_EXPORT ToolbarWidget : public StackPanel {
 public:
     /** @brief Construct a horizontal toolbar. */
     ToolbarWidget();
@@ -120,7 +120,7 @@ public:
 /** @brief Fixed breadcrumb path with a borrowed selected-segment index.
  *  @note Clicks update selection but do not truncate the stored path.
  */
-class BreadcrumbWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT BreadcrumbWidget : public Widget {
 public:
     /** @brief Bind breadcrumb navigation.
      *  @param segments Fixed path labels copied/moved into the widget.

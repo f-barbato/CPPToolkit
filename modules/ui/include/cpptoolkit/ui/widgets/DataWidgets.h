@@ -16,7 +16,7 @@
 namespace cpptoolkit::ui {
 
 /** @brief Toggle a borrowed selection flag through an ImGui selectable item. */
-class SelectableWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT SelectableWidget : public Widget {
 public:
     /** @brief Bind a selectable item.
      *  @param label Item label and ID.
@@ -50,7 +50,7 @@ struct TableSortColumn {
  * property. Missing cells are blank and cells beyond the columns are not shown.
  * Sorting is delegated to the ViewModel; the widget never reorders source rows.
  */
-class TableWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT TableWidget : public Widget {
 public:
     /** @brief Row-major string cell data. */
     using Rows = std::vector<std::vector<std::string>>;
@@ -98,7 +98,7 @@ struct TreeNode {
 /** @brief Render an immutable hierarchy with a borrowed selected node ID.
  *  @note -1 or an unknown ID displays no selection. Expansion is retained by ImGui.
  */
-class TreeViewWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT TreeViewWidget : public Widget {
 public:
     /** @brief Construct a selectable tree.
      *  @param label Heading above the tree.

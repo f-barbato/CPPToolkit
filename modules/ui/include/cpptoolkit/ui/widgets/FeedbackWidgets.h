@@ -17,7 +17,7 @@ namespace cpptoolkit::ui {
 /** @brief Display a borrowed normalized progress value without modifying it.
  *  @note Finite values are visually clamped to [0,1]; nonfinite values display an error.
  */
-class ProgressBarWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT ProgressBarWidget : public Widget {
 public:
     /** @brief Bind a progress display.
      *  @param label Overlay text displayed on the bar.
@@ -36,7 +36,7 @@ private:
 };
 
 /** @brief Render an animated activity arc only while a borrowed busy flag is true. */
-class SpinnerWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT SpinnerWidget : public Widget {
 public:
     /** @brief Bind an activity indicator.
      *  @param label Text accompanying the arc.
@@ -52,7 +52,7 @@ private:
 };
 
 /** @brief Display a borrowed status string in a fixed color. */
-class BadgeWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT BadgeWidget : public Widget {
 public:
     /** @brief Bind colored status text.
      *  @param text Borrowed property which must outlive this widget.
@@ -71,7 +71,7 @@ private:
 /** @brief Inline notification with a user-dismiss button and bound visibility.
  *  @note Both properties must outlive this widget; programmatic closing is silent.
  */
-class NotificationWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT NotificationWidget : public Widget {
 public:
     /** @brief Bind notification content and visibility.
      *  @param label Prefix text.
@@ -95,7 +95,7 @@ private:
 /** @brief Display a borrowed backend texture identifier without owning its texture.
  *  @note The property and backend texture must remain alive through rendering.
  */
-class ImageWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT ImageWidget : public Widget {
 public:
     /** @brief Configure an image.
      *  @param texture Borrowed texture identifier property.

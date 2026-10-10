@@ -20,7 +20,7 @@ namespace cpptoolkit::ui {
 /** @brief Sample a borrowed float property on every Draw() into a rolling history.
  *  @note Samples are frame-based, not timestamped. The property must outlive the widget.
  */
-class PlotLineWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT PlotLineWidget : public Widget {
 public:
     /** @brief Maximum number of retained samples. */
     static constexpr std::size_t kHistoryCapacity = 256;

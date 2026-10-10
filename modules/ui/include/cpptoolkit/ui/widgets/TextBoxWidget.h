@@ -20,7 +20,7 @@ namespace cpptoolkit::ui {
  * OnTextChanged executes on the render thread. Programmatic changes are polled
  * without triggering this callback.
  */
-class TextBoxWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT TextBoxWidget : public Widget {
 public:
     /** @brief Callback receiving the edited text after property commit. */
     using TextChangedHandler = std::function<void(const std::string&)>;

@@ -54,8 +54,27 @@
       "displayName": "All modules, tests and examples (Release build)",
       "inherits": "all-modules",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_SHARED_LIBS": "ON"
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "all-modules-shared-linux",
+      "displayName": "Shared modules (Linux, dynamic dependencies)",
+      "inherits": "all-modules-release",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
+      }
+    },
+    {
+      "name": "all-modules-shared-windows",
+      "displayName": "Shared modules (Windows x64)",
+      "inherits": "all-modules-release",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
       }
     }
   ],
@@ -64,6 +83,8 @@
     { "name": "core-only", "configurePreset": "core-only" },
     { "name": "all-modules", "configurePreset": "all-modules" },
     { "name": "all-modules-debug", "configurePreset": "all-modules-debug" },
-    { "name": "all-modules-release", "configurePreset": "all-modules-release" }
+    { "name": "all-modules-release", "configurePreset": "all-modules-release" },
+    { "name": "all-modules-shared-linux", "configurePreset": "all-modules-shared-linux" },
+    { "name": "all-modules-shared-windows", "configurePreset": "all-modules-shared-windows" }
   ]
 }

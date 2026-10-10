@@ -18,7 +18,7 @@ namespace cpptoolkit::ui {
 /** @brief Button disabled when its borrowed Command cannot execute.
  *  @note The command must outlive the widget. OnClick executes after the command.
  */
-class ButtonWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT ButtonWidget : public Widget {
 public:
     
     /** @brief Bind a button action.

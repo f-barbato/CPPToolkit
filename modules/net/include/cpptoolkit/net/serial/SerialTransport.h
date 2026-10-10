@@ -18,7 +18,7 @@ namespace cpptoolkit::net {
  * IsConnected() reports false, and Read()/Write() return zero. No serial I/O
  * is performed.
  */
-class SerialTransport : public ITransport {
+class CPPTOOLKIT_NET_EXPORT SerialTransport : public ITransport {
 public:
     /**
      * @brief Constructs a transport configuration.

@@ -21,7 +21,7 @@ enum class Orientation {
 };
 
 /** @brief Draw owned visible children in horizontal or vertical flow. */
-class StackPanel : public Panel {
+class CPPTOOLKIT_UI_EXPORT StackPanel : public Panel {
 public:
     /** @brief Set the stack direction.
      *  @param orientation Child flow direction.
@@ -35,7 +35,7 @@ private:
 };
 
 /** @brief Place each visible direct child into the next cell of an ImGui table. */
-class GridPanel : public Panel {
+class CPPTOOLKIT_UI_EXPORT GridPanel : public Panel {
 public:
     /** @brief Configure a fixed-column grid.
      *  @param label ImGui table ID.
@@ -52,7 +52,7 @@ private:
 };
 
 /** @brief Border-framed child region with vertical and horizontal scrolling. */
-class ScrollPanel : public Panel {
+class CPPTOOLKIT_UI_EXPORT ScrollPanel : public Panel {
 public:
     /** @brief Configure the scroll region.
      *  @param label ImGui child-window ID.
@@ -77,7 +77,7 @@ private:
  * insufficient space display a diagnostic rather than drawing invalid panes.
  * Populate First() and Second(); inherited direct Add() children are not panes.
  */
-class SplitterWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT SplitterWidget : public Widget {
 public:
     /** @brief Bind the first pane extent in pixels.
      *  @param label Divider's ImGui item ID.

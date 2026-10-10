@@ -15,7 +15,7 @@
 namespace cpptoolkit::ui {
 
 /** @brief Display a borrowed string property, polling it once per Draw(). */
-class TextWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT TextWidget : public Widget {
 public:
     /** @brief Bind read-only text.
      *  @param bound Property which must outlive this widget.

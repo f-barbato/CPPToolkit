@@ -24,7 +24,7 @@ namespace cpptoolkit::net {
  * SimpleBLE's BUSL-1.1 licensing terms should be reviewed before distributing
  * binaries that link it.
  */
-class BleTransport : public ITransport {
+class CPPTOOLKIT_NET_EXPORT BleTransport : public ITransport {
 public:
     /**
      * @brief Constructs a transport from a SimpleBLE peripheral.

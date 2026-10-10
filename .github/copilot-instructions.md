@@ -28,6 +28,8 @@ Module dependency rules established so far:
 - Manifest mode, single `vcpkg.json` for the whole repo, one **feature per module**.
 - Private/unpublished library → integrate via **overlay port** (`vcpkg-configuration.json` pointing at a local `ports/` folder) rather than publishing to the public vcpkg registry.
 - Feature → CMake option mapping done via `vcpkg_check_features()` in `portfile.cmake`.
+- Compiled modules support static/shared builds via `BUILD_SHARED_LIBS`; the port sets it from `VCPKG_LIBRARY_LINKAGE`. `GenerateExportHeader` provides module `Export.h` headers and Windows API annotations. Header-only modules remain `INTERFACE`; the package exports one library per compiled module.
+- Consumers use the complete `ports/` overlay: local ImGui/ImPlot ports preserve upstream features while adding shared linkage and DLL export headers, avoiding duplicated GUI contexts across DLL boundaries. `triplets/x64-linux-dynamic.cmake` enables Linux dynamic builds; Windows uses `x64-windows`. `tests/package-consumer/` exercises the installed package independently.
 
 ### Repository / module layout
 Every module follows the same structure:
@@ -74,7 +76,7 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 - Concrete widgets shipped in `cpptoolkit/ui/widgets/`: `TextWidget`, `TextBoxWidget` (two-way string binding, optional render-thread `OnTextChanged` callback for user edits), `SliderFloatWidget`, `ButtonWidget`, `PlotLineWidget` (ImPlot, backed by a `cpptoolkit::structs::RingBuffer`).
 - Generic input, selection, feedback, data, navigation, layout and overlay controls are grouped into `InputWidgets.h`, `FeedbackWidgets.h`, `DataWidgets.h`, `NavigationWidgets.h`, `LayoutWidgets.h` and `OverlayWidgets.h`; see the UI README for the full catalog. They retain `ObservableProperty`/`Command` bindings and optional render-thread user-event callbacks after property commit. Programmatic property changes do not emit user-edit callbacks. Table sorting is explicitly requested from the ViewModel.
 - `examples/TestUI.h` builds a six-tab gallery inside `cpptoolkit_ui_demo` (TestUI), covering all generic controls. `modules/ui/tests/` contains headless ImGui binding and gallery tests.
-- Chosen graphics backend: **raylib 6.0** + **rlImGui** (bridge, not on vcpkg — vendored via `FetchContent` in `modules/ui/examples/`, not inside the `ui` library itself) + **ImPlot** for real-time plotting.
+- Current graphics backend: **raylib >= 5.5** + pinned **rlImGui** + **ImPlot**. `Application` exposes the backend publicly, so the UI module builds/installs the bridge and declares raylib/GLFW as dependencies. The vcpkg port retrieves the pinned bridge with a verified checksum before CMake; standalone builds use FetchContent. The bridge follows static/shared linkage and has independent exports rather than reusing raylib's macros.
 - `modules/ui/examples/main.cpp` is a working raylib+ImGui+ImPlot demo app (built with `CPPTOOLKIT_BUILD_EXAMPLES=ON`), wiring a `DemoViewModel` to a `Panel` of the widgets above.
 - Original use case: visual debug tooling for microcontrollers (register/memory viewers, real-time telemetry plots, serial/BLE consoles).
 
@@ -86,6 +88,7 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 - CMake ≥ 3.20, C++17 minimum (`cxx_std_17`).
 - Root `CMakeLists.txt` exposes one `CPPTOOLKIT_BUILD_<MODULE>` option per module (default `OFF`), and auto-enables hard dependencies (e.g. enabling `ui` forces `mvvm` and `struct` ON).
 - Tests and examples are opt-in via `CPPTOOLKIT_BUILD_TESTS` / `CPPTOOLKIT_BUILD_EXAMPLES`, kept out of default builds.
+- PIC is enabled for all compiled modules and the bridge. Shared UI requires shared ImGui/ImPlot and rejects static GUI dependencies. Release optimization does not imply shared linkage; use the dedicated `all-modules-shared-linux` / `all-modules-shared-windows` presets.
 - All public module headers are Doxygen-documented. `CPPTOOLKIT_BUILD_DOCS=ON` exposes `cpptoolkit_docs` (Doxygen >= 1.9.5), writing HTML/XML to the build directory's `docs/`; documentation warnings fail generation, and all public modules are included regardless of enabled compilation features.
 
 ## License

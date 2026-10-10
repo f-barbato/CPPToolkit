@@ -24,6 +24,19 @@ A modular C++ toolkit distributed as a single [vcpkg](https://vcpkg.io) package,
 
 ### Using vcpkg
 
+This private package uses overlay ports. In the consumer project, add
+`vcpkg-configuration.json` (adjust paths to the CPPToolkit checkout):
+
+```json
+{
+  "overlay-ports": ["../CPPToolkit/ports"],
+  "overlay-triplets": ["../CPPToolkit/triplets"]
+}
+```
+
+Keep the complete overlay directory: its ImGui/ImPlot ports support both
+static and shared libraries. See [overlay maintenance notes](ports/README.md).
+
 Add `cpptoolkit` to your `vcpkg.json`, enabling only the features you need:
 
 ```json
@@ -46,9 +59,60 @@ target_link_libraries(myapp PRIVATE cpptoolkit::mvvm cpptoolkit::ui)
 ```bash
 git clone https://github.com/f-barbato/CPPToolkit.git
 cd CPPToolkit
-cmake -B build -DCPPTOOLKIT_BUILD_MVVM=ON -DCPPTOOLKIT_BUILD_UI=ON
-cmake --build build
+cmake --preset all-modules-debug
+cmake --build --preset all-modules-debug
 ```
+
+Set `VCPKG_ROOT` to the vcpkg checkout before configuring presets.
+
+### Static and shared libraries
+
+Compiled modules (`mvvm`, `net`, `ui`) follow `BUILD_SHARED_LIBS` (default
+`OFF`). `platform`, `struct` and `algo` are header-only and remain interface
+targets. Each compiled module produces its own library, not one monolithic DLL.
+Generated `Export.h` headers provide Windows exports/imports and static-build
+definitions automatically through the CMake targets; do not set these macros
+manually. The exported build interface requires C++23.
+
+The overlay port maps the target triplet's linkage to `BUILD_SHARED_LIBS`.
+For a consumer:
+
+```bash
+# Linux shared modules and shared GUI dependencies:
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+  -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic
+```
+
+On Windows use `x64-windows` for DLLs or `x64-windows-static` for static libraries.
+Linux's standard `x64-linux` triplet is static. For standalone builds of this
+repository, use `all-modules-shared-linux` or `all-modules-shared-windows` presets.
+Release optimization and linkage are independent: `all-modules-release` no
+longer implicitly requests shared linkage.
+
+Shared UI builds require shared ImGui and ImPlot, so the executable, bridge and
+widget DLL use the same GUI contexts. Stock vcpkg ImGui/ImPlot ports are
+static-only; the included overlays remove this limitation while retaining their
+features. An incompatible shared-UI configuration fails with a clear diagnostic.
+The pinned rlImGui bridge follows the module linkage and uses independent
+exports, with PIC enabled for compiled targets.
+
+Install the configured build with `cmake --install build-directory --prefix
+install-prefix`. Consumers use `find_package(cpptoolkit CONFIG REQUIRED)` and
+the exported module targets; dependency packages must also be discoverable.
+Use a consistent compiler, architecture, C++ ABI and runtime across the library
+and application. For deployment distribute all required DLLs/shared libraries,
+not only CPPToolkit's; on Windows put DLLs alongside the executable or on PATH,
+and on Linux configure the loader path/RPATH appropriately.
+Installed libraries default to `$ORIGIN` (`@loader_path` on macOS) for
+co-located dependencies, unless a custom `CMAKE_INSTALL_RPATH` is supplied.
+
+The current overlay compiles from its enclosing CPPToolkit checkout. It is not
+yet a remote, tagged registry package. Root-manifest version overrides are not
+inherited by other projects. Serial/TCP and BLE characteristic I/O remain
+placeholders independent of the chosen linkage.
+
+An independent regression consumer is available in
+[`tests/package-consumer`](tests/package-consumer/README.md).
 
 ## API documentation
 

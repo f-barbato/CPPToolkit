@@ -18,7 +18,7 @@ namespace cpptoolkit::ui {
 /** @brief Poll a borrowed float property and write back actual slider edits.
  *  @note Property updates precede OnValueChanged; programmatic updates are silent.
  */
-class SliderFloatWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT SliderFloatWidget : public Widget {
 public:
     /** @brief Configure the slider and borrow its value.
      *  @param label ImGui label and ID.

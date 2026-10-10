@@ -23,7 +23,7 @@ namespace cpptoolkit::ui {
      * Configure before Run(). Rendering, Stop() and configuration changes are
      * render-thread operations, not a thread-safe application control API.
      */
-    class Application : public std::enable_shared_from_this<Application> {
+    class CPPTOOLKIT_UI_EXPORT Application : public std::enable_shared_from_this<Application> {
 
         public:
             /** @brief Retain a type-erased root widget.

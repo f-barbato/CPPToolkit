@@ -17,6 +17,10 @@
  *
  * Enabling ui enables mvvm, which enables struct. The current module helper
  * requests C++23. Tests, examples and this documentation are opt-in.
+ * Compiled modules follow BUILD_SHARED_LIBS and expose generated per-module
+ * Export.h headers; header-only modules remain interface targets. The vcpkg
+ * triplet selects linkage for the overlay package. Shared UI requires the
+ * included shared-capable ImGui/ImPlot overlays to preserve common GUI contexts.
  *
  * @section ui_binding UI binding and callback contract
  *

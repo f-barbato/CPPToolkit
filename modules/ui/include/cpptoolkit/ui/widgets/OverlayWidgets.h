@@ -16,7 +16,7 @@ namespace cpptoolkit::ui {
 /** @brief Container shown when the previously submitted ImGui item is hovered.
  *  @note Insert directly after the target widget; its children supply tooltip content.
  */
-class TooltipWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT TooltipWidget : public Widget {
 public:
     /** @brief Draw child contents inside an ImGui item tooltip when active. */
     void Draw() override;
@@ -38,7 +38,7 @@ enum class PopupKind {
  * Keep this widget in a continuously drawn scope if it can be opened from
  * controls outside its current tab or conditional container.
  */
-class PopupWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT PopupWidget : public Widget {
 public:
     /** @brief Bind popup visibility.
      *  @param label Popup ID and, for modals, window title; use unique modal titles.
@@ -63,7 +63,7 @@ private:
 };
 
 /** @brief Modal PopupWidget specialization blocking interaction behind its window. */
-class DialogWidget : public PopupWidget {
+class CPPTOOLKIT_UI_EXPORT DialogWidget : public PopupWidget {
 public:
     /** @brief Bind a modal dialog.
      *  @param label Unique dialog ID and title.
@@ -73,7 +73,7 @@ public:
 };
 
 /** @brief PopupWidget specialization activated by right-clicking the previous item. */
-class ContextMenuWidget : public PopupWidget {
+class CPPTOOLKIT_UI_EXPORT ContextMenuWidget : public PopupWidget {
 public:
     /** @brief Bind a context menu.
      *  @param label Popup ID.

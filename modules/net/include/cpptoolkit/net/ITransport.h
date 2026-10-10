@@ -1,4 +1,5 @@
 #pragma once
+#include <cpptoolkit/net/Export.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -15,7 +16,7 @@ namespace cpptoolkit::net {
  *
  * Concrete transport implementations determine connection and I/O details.
  */
-class ITransport {
+class CPPTOOLKIT_NET_EXPORT ITransport {
 public:
     /** @brief Destroys the transport through the interface. */
     virtual ~ITransport() = default;

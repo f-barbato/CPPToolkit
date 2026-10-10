@@ -1,4 +1,5 @@
 #pragma once
+#include <cpptoolkit/mvvm/Export.h>
 
 #include <condition_variable>
 #include <functional>
@@ -21,7 +22,7 @@ namespace cpptoolkit::mvvm {
  * exiting. Task exceptions are not caught; an uncaught exception on the worker
  * thread causes std::terminate.
  */
-class NotificationWorker {
+class CPPTOOLKIT_MVVM_EXPORT NotificationWorker {
 public:
     /**
      * @brief Returns the process-wide notification worker.

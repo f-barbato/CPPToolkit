@@ -1,4 +1,5 @@
 #pragma once
+#include <cpptoolkit/mvvm/Export.h>
 
 #include <functional>
 #include <mutex>
@@ -20,7 +21,7 @@ namespace cpptoolkit::mvvm {
  * wait for the next call. Actions in a batch execute in post order on the
  * processing thread.
  */
-class Dispatcher {
+class CPPTOOLKIT_MVVM_EXPORT Dispatcher {
 public:
     /**
      * @brief Returns the process-wide dispatcher instance.

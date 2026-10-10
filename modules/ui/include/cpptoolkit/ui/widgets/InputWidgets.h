@@ -24,7 +24,7 @@
 namespace cpptoolkit::ui {
 
 /** @brief Two-way bound Boolean checkbox; the bound property must outlive it. */
-class CheckBoxWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT CheckBoxWidget : public Widget {
 public:
     /** @brief Receives the new checked state after a user change is committed. */
     using CheckedChangedHandler = std::function<void(bool)>;
@@ -52,7 +52,7 @@ private:
  * radio widget cannot validate the upper limit of an entire group. Clicking an
  * already selected option does not notify. The property must outlive the widget.
  */
-class RadioButtonWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT RadioButtonWidget : public Widget {
 public:
     /** @brief Receives the newly selected option after its property is committed. */
     using SelectionChangedHandler = std::function<void(int)>;
@@ -85,7 +85,7 @@ private:
  * moved into the widget and cannot subsequently be replaced. The borrowed
  * selection property must outlive the widget.
  */
-class ComboBoxWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT ComboBoxWidget : public Widget {
 public:
     /** @brief Receives the new zero-based selection after property commit. */
     using SelectionChangedHandler = std::function<void(int)>;
@@ -119,7 +119,7 @@ private:
  * safely display no selected row without changing the property. The borrowed
  * selection property must outlive the widget.
  */
-class ListBoxWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT ListBoxWidget : public Widget {
 public:
     /** @brief Receives the new zero-based selection after property commit. */
     using SelectionChangedHandler = std::function<void(int)>;
@@ -152,7 +152,7 @@ private:
  * No numeric bounds are imposed. Accepted edits follow ImGui's scalar-input
  * commit behavior. The borrowed property must outlive this widget.
  */
-class InputIntWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT InputIntWidget : public Widget {
 public:
     /** @brief Receives the new integer after an accepted user edit is committed. */
     using ValueChangedHandler = std::function<void(int)>;
@@ -186,7 +186,7 @@ private:
  * No numeric bounds are imposed. Display uses three fractional digits. Accepted
  * edits follow ImGui's scalar-input commit behavior. The property must outlive it.
  */
-class InputFloatWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT InputFloatWidget : public Widget {
 public:
     /** @brief Receives the new value after an accepted user edit is committed. */
     using ValueChangedHandler = std::function<void(float)>;
@@ -222,7 +222,7 @@ private:
  * programmatic property values. Equal bounds fix user edits to that value.
  * The borrowed property must outlive the widget.
  */
-class DragFloatWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT DragFloatWidget : public Widget {
 public:
     /** @brief Receives the clamped value after an actual user change is committed. */
     using ValueChangedHandler = std::function<void(float)>;
@@ -260,7 +260,7 @@ private:
  * overflow-safe; merely drawing does not clamp programmatic property values.
  * The borrowed property must outlive the widget.
  */
-class SpinBoxWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT SpinBoxWidget : public Widget {
 public:
     /** @brief Receives the clamped integer after an actual user change is committed. */
     using ValueChangedHandler = std::function<void(int)>;
@@ -296,7 +296,7 @@ private:
  * Components conventionally use [0, 1]; construction does not validate or
  * normalize property values. The borrowed property must outlive the widget.
  */
-class ColorPickerWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT ColorPickerWidget : public Widget {
 public:
     /** @brief Red, green, blue, and alpha components, in that order. */
     using Color = std::array<float, 4>;
@@ -326,7 +326,7 @@ private:
  * a null-terminated string, so embedded null bytes are not supported as editable
  * text. ImGui chooses the default multiline area size. The property must outlive it.
  */
-class TextAreaWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT TextAreaWidget : public Widget {
 public:
     /** @brief Receives committed text; the reference is valid only during the call. */
     using TextChangedHandler = std::function<void(const std::string&)>;
@@ -358,7 +358,7 @@ private:
  * secure storage or memory erasure. Embedded null bytes are not supported as
  * editable text. The borrowed property must outlive the widget.
  */
-class PasswordWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT PasswordWidget : public Widget {
 public:
     /** @brief Receives committed plaintext; the reference lasts only for the call. */
     using TextChangedHandler = std::function<void(const std::string&)>;
@@ -390,7 +390,7 @@ private:
  * Embedded null bytes are not supported as editable text. The borrowed property
  * must outlive the widget.
  */
-class SearchBoxWidget : public Widget {
+class CPPTOOLKIT_UI_EXPORT SearchBoxWidget : public Widget {
 public:
     /** @brief Receives committed query text; the reference lasts only for the call. */
     using TextChangedHandler = std::function<void(const std::string&)>;

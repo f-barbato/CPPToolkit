@@ -1,4 +1,5 @@
 #pragma once
+#include <cpptoolkit/ui/Export.h>
 
 /** @file
  *  @brief Base ownership and lifecycle API for retained widget trees.

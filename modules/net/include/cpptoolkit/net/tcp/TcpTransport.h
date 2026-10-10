@@ -19,7 +19,7 @@ namespace cpptoolkit::net {
  * IsConnected() reports false, and Read()/Write() return zero. No socket I/O
  * is performed.
  */
-class TcpTransport : public ITransport {
+class CPPTOOLKIT_NET_EXPORT TcpTransport : public ITransport {
 public:
     /**
      * @brief Constructs a transport configuration.

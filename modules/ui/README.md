@@ -89,7 +89,9 @@ ImGui itself stays immediate-mode under the hood (it must be called every frame)
 
 ## Optional sub-functionality
 
-When both `ui` and `net` are enabled (vcpkg feature `ui-net-widgets`), `CPPTOOLKIT_UI_HAS_NET_WIDGETS` is defined and widgets that visualize `net` transport state become available.
+Only the explicit `ui-net-widgets` feature / `CPPTOOLKIT_BUILD_UI_NET_WIDGETS`
+option defines `CPPTOOLKIT_UI_HAS_NET_WIDGETS` and adds the net dependency.
+Enabling `ui` and `net` separately does not activate this combined feature.
 
 ## Dependencies
 
@@ -97,7 +99,16 @@ When both `ui` and `net` are enabled (vcpkg feature `ui-net-widgets`), `CPPTOOLK
 - `imgui` (vcpkg feature `docking-experimental`)
 - `implot`
 
-Graphics backend (window/input/rendering) is left to the consumer; the reference combination used during design is **raylib 6.0 + rlImGui** (rlImGui is not on vcpkg — vendor it via `FetchContent` in your application, not inside this library).
+The current `Application` API exposes raylib and rlImGui, so the UI module also
+requires raylib (at least 5.5), GLFW and the pinned rlImGui bridge. These are
+installed/exported with the package as required; consumers need not fetch a
+second bridge. The bridge's installed headers include their font icon and
+generated export headers.
+
+For shared UI builds use the complete `ports/` overlay and a dynamic triplet.
+ImGui and ImPlot must be shared too, preserving one set of context globals
+across the executable, bridge and widget library. The library rejects
+shared-UI configurations with static GUI dependencies.
 
 ## Usage
 

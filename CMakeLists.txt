@@ -25,6 +25,7 @@ option(CPPTOOLKIT_BUILD_UI_NET_WIDGETS "Enable ui widgets that visualize net mod
 option(CPPTOOLKIT_BUILD_TESTS "Build unit tests" OFF)
 option(CPPTOOLKIT_BUILD_EXAMPLES "Build examples" OFF)
 option(CPPTOOLKIT_BUILD_DOCS "Enable the Doxygen API documentation target" OFF)
+option(BUILD_SHARED_LIBS "Build compiled CPPToolkit modules as shared libraries" OFF)
 
 if(CPPTOOLKIT_BUILD_TESTS)
     enable_testing()
@@ -66,6 +67,14 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+if(NOT CMAKE_INSTALL_RPATH)
+    if(APPLE)
+        set(CMAKE_INSTALL_RPATH "@loader_path")
+    elseif(UNIX)
+        set(CMAKE_INSTALL_RPATH "$ORIGIN")
+    endif()
+endif()
+
 set(CPPTOOLKIT_DIST_DIR
     "${CMAKE_CURRENT_SOURCE_DIR}/dist/$<IF:$<BOOL:$<CONFIG>>,$<CONFIG>,NoConfig>/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}"
 )
@@ -92,6 +101,14 @@ foreach(module platform struct mvvm algo ui net)
         add_custom_command(TARGET cpptoolkit_stage_headers POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy_directory
                 "${module_include_dir}"
+                "${CPPTOOLKIT_DIST_DIR}/include"
+        )
+    endif()
+    set(module_generated_include_dir "${CMAKE_CURRENT_BINARY_DIR}/modules/${module}/include")
+    if(EXISTS "${module_generated_include_dir}")
+        add_custom_command(TARGET cpptoolkit_stage_headers POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory
+                "${module_generated_include_dir}"
                 "${CPPTOOLKIT_DIST_DIR}/include"
         )
     endif()
