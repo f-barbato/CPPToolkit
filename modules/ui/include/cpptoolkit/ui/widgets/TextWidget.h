@@ -21,11 +21,16 @@ public:
      *  @param bound Property which must outlive this widget.
      */
     explicit TextWidget(mvvm::ObservableProperty<std::string>& bound);
+    /** @brief Construct unbound static text.
+     *  @param text Display value.
+     */
+    explicit TextWidget(std::string text = "");
     /** @brief Submit the current value as unformatted ImGui text. */
     void Draw() override;
 
 private:
-    mvvm::ObservableProperty<std::string>& bound_;
+    mvvm::ObservableProperty<std::string>* bound_ = nullptr;
+    std::string text_;
 };
 
 } // namespace cpptoolkit::ui

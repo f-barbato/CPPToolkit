@@ -31,15 +31,25 @@ public:
     SliderFloatWidget(std::string label, mvvm::ObservableProperty<float>& bound, float min, float max,
                       std::function<void(float)> onValueChanged = {});
     /** @brief Render and commit actual user edits. */
+    /** @brief Construct an unbound slider using a local value.
+     *  @param label ImGui label and ID.
+     *  @param min Finite lower endpoint.
+     *  @param max Finite upper endpoint, greater than min.
+     *  @param initial Initial local value.
+     *  @throws std::invalid_argument If the endpoints are invalid.
+     */
+    SliderFloatWidget(std::string label, float min, float max, float initial = 0.0f);
+    /** @brief Render the slider and commit bound or local edits before the callback. */
     void Draw() override;
     /** @brief Optional callback receiving the committed value on the render thread. */
     std::function<void(float)> OnValueChanged;
 
 private:
     std::string label_;
-    mvvm::ObservableProperty<float>& bound_;
+    mvvm::ObservableProperty<float>* bound_ = nullptr;
     float min_;
     float max_;
+    float value_ = 0;
 };
 
 } // namespace cpptoolkit::ui

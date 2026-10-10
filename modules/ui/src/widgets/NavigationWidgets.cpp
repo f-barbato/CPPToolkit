@@ -48,7 +48,13 @@ void TabBarWidget::Draw() {
 }
 
 void TabBarWidget::Build() {
-    for (auto& tab : tabs_) tab.Content->Build();
+    OnBuild();
+    for (auto& tab : tabs_) {
+        if (!tab.Content->HasViewModel())
+            tab.Content->SetViewModel(GetViewModel<mvvm::ObservableObject>());
+        if (!tab.Content->HasApplication()) tab.Content->SetApplication(GetApplication());
+        tab.Content->Build();
+    }
     BuildChildren();
 }
 

@@ -4,6 +4,7 @@
  *  @brief Command-bound button.
  */
 
+#include <functional>
 #include <string>
 #include <utility>
 
@@ -28,13 +29,19 @@ public:
      */
     ButtonWidget(std::string label, mvvm::Command& command, std::function<void()> onClick = {});
     /** @brief Render the button and invoke enabled user actions. */
+    /** @brief Construct an optional callback-only button.
+     *  @param label ImGui label and ID.
+     *  @param onClick Optional callback; without it the button is inert.
+     */
+    explicit ButtonWidget(std::string label, std::function<void()> onClick = nullptr);
+    /** @brief Render the button and invoke its enabled action. */
     void Draw() override;
     /** @brief Optional render-thread callback after command execution. */
     std::function<void()> OnClick;
 
 private:
     std::string label_;
-    mvvm::Command& command_;
+    mvvm::Command* command_ = nullptr;
 };
 
 } // namespace cpptoolkit::ui

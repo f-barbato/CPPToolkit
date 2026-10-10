@@ -10,7 +10,15 @@
 #include <algorithm>
 #include <utility>
 
+#include <imgui.h>
+#include <raylib.h>
+#include <rlImGui.h>
+
+#include "cpptoolkit/mvvm/ObservableObject.h"
+
 namespace cpptoolkit::ui {
+
+class Application;
 
 /**
  * @brief Base class owning a persistent tree of immediate-mode widgets.
@@ -24,8 +32,15 @@ public:
     /** @brief Destroy this widget and its owned children. */
     virtual ~Widget() = default;
 
-    /** @brief Build all children, including hidden ones. */
+    /** @brief Initialize a newly attached widget after its ambient context is assigned. */
+    virtual void PreBuild() {
+    }
+
+    /** @brief Invoke OnBuild() then build children, including hidden ones.
+     *  @note Kept virtual for existing containers; new views should override OnBuild().
+     */
     virtual void Build() {
+        OnBuild();
         BuildChildren();
     }
 
@@ -39,6 +54,9 @@ public:
     template <typename T, typename... Args>
     T& Add(Args&&... args) {
         auto widget = std::make_unique<T>(std::forward<Args>(args)...);
+        if (!widget->HasViewModel()) widget->SetViewModel(viewModel_);
+        if (!widget->HasApplication()) widget->SetApplication(application_);
+        widget->PreBuild();
         T& ref = *widget;
         children_.push_back(std::move(widget));
         return ref;
@@ -69,7 +87,42 @@ public:
         DestroyChildren();
     }
 
+    /** @brief Set the borrowed ambient binding context for future children.
+     *  @param viewModel Model pointer, or nullptr for no model.
+     */
+    void SetViewModel(mvvm::ObservableObject* viewModel) { viewModel_ = viewModel; }
+
+    /** @brief Test whether a model is attached.
+     *  @return True when the borrowed model pointer is nonnull.
+     */
+    bool HasViewModel() const { return viewModel_ != nullptr; }
+
+    /** @brief Retrieve a compatible ambient model.
+     *  @tparam T Requested ObservableObject-derived type.
+     *  @return Borrowed typed model, or nullptr if missing/incompatible.
+     */
+    template <typename T>
+    T* GetViewModel() const { return dynamic_cast<T*>(viewModel_); }
+
+    /** @brief Set the borrowed application context for future children.
+     *  @param application Application pointer, or nullptr.
+     */
+    void SetApplication(Application* application) { application_ = application; }
+
+    /** @brief Test whether an application is attached.
+     *  @return True when the application pointer is nonnull.
+     */
+    bool HasApplication() const { return application_ != nullptr; }
+
+    /** @brief Access the ambient application.
+     *  @return Borrowed application pointer, possibly nullptr.
+     */
+    Application* GetApplication() const { return application_; }
+
 protected:
+    /** @brief Hook for adding children before recursive construction. */
+    virtual void OnBuild() {}
+
     /** @brief Visit visible direct children in insertion order.
      *  @tparam Action Callable accepting a Widget reference.
      *  @param action Visitor; must not mutate this child collection while iterating.
@@ -84,6 +137,8 @@ protected:
     /** @brief Invoke Build() on every child in insertion order. */
     void BuildChildren() {
         for (auto& child : children_) {
+            if (!child->HasViewModel()) child->SetViewModel(viewModel_);
+            if (!child->HasApplication()) child->SetApplication(application_);
             child->Build();
         }
     }
@@ -109,6 +164,8 @@ public:
 
 private:
     std::vector<std::unique_ptr<Widget>> children_;
+    mvvm::ObservableObject* viewModel_ = nullptr;
+    Application* application_ = nullptr;
 
 };
 

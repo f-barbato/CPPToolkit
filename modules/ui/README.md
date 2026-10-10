@@ -7,6 +7,25 @@ A retained-mode layer on top of Dear ImGui (immediate-mode), data-bound to `mvvm
 - `Widget` — base class; `Draw()` is called every frame and is expected to issue the corresponding ImGui calls.
 - `Panel` — persistent container of child widgets (`Add<T>(...)`, `Remove(...)`). The widget tree is built once; only the values read in `Draw()` change frame to frame.
 
+`Panel()` remains an inline container, while `Panel("Title")` creates a closable
+ImGui window with configurable flags. `DockedPanel` enables docking and hosts
+child panels. Override `OnBuild()` to populate new widget trees; `Build()`
+invokes the hook and recursively builds children. It remains virtual for
+compatibility with existing containers overriding it.
+
+`View<T>` attaches its model as a borrowed ambient context, inherited through
+`Add()` and container construction. Descendants can use `GetViewModel<T>()`
+and `GetApplication()`; explicitly attached child models are preserved.
+Contexts must outlive their widgets and must be set before tree construction.
+
+`Application::Create<Root>()` creates one process-wide application for a root
+type; `Instance()` retrieves it, and `GetInstance<Root>()` remains a compatibility
+alias. Creating a different root type later throws. Fluent setters support
+runtime window configuration. `RunAsync()` queues serialized background work;
+`Dispatch()` queues work drained in an active GUI frame on the render thread.
+Use owned/weak captures for background work, never dangling widget/model
+pointers. Teardown covers exceptions during construction as well as rendering.
+
 ### Concrete widgets (`cpptoolkit/ui/widgets/widgets.h`)
 
 - `TextWidget` — read-only text, polls a bound `ObservableProperty<std::string>`.
@@ -157,6 +176,9 @@ atlas without allocating another texture.
 
 The backend uses raylib, Dear ImGui via
 [rlImGui](https://github.com/raylib-extras/rlImGui), and ImPlot.
+When net is enabled, a separate serial-console panel demonstrates asynchronous
+I/O handoff and dispatched error visibility; the actual serial transport is
+still a placeholder and connection attempts report that explicitly.
 Headless gtests exercise user edits, callback ordering, programmatic updates,
 read-only behavior, UTF-8 buffers, popups and the complete TestUI gallery:
 

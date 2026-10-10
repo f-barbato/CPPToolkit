@@ -3,12 +3,15 @@
 namespace cpptoolkit::ui{
     
     ButtonWidget::ButtonWidget(std::string label, mvvm::Command& command, std::function<void()> onClick)
-        : OnClick(std::move(onClick)), label_(std::move(label)), command_(command) {}
+        : OnClick(std::move(onClick)), label_(std::move(label)), command_(&command) {}
+    ButtonWidget::ButtonWidget(std::string label, std::function<void()> onClick)
+        : OnClick(std::move(onClick)), label_(std::move(label)) {}
 
     void ButtonWidget::Draw(){
-        ImGui::BeginDisabled(!command_.CanExecute());
+        bool enabled = !command_ || command_->CanExecute();
+        ImGui::BeginDisabled(!enabled);
         if (ImGui::Button(label_.c_str())) {
-            command_.Execute();
+            if (command_) command_->Execute();
             if (OnClick) OnClick();
         }
         ImGui::EndDisabled();

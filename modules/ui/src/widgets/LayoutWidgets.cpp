@@ -112,6 +112,11 @@ void SplitterWidget::Draw() {
 }
 
 void SplitterWidget::Build() {
+    OnBuild();
+    for (auto* pane : {&first_, &second_}) {
+        if (!pane->HasViewModel()) pane->SetViewModel(GetViewModel<mvvm::ObservableObject>());
+        if (!pane->HasApplication()) pane->SetApplication(GetApplication());
+    }
     first_.Build();
     second_.Build();
     BuildChildren();

@@ -1,5 +1,7 @@
 #include <limits>
 #include <stdexcept>
+#include <future>
+#include <chrono>
 
 #include <gtest/gtest.h>
 #include <imgui.h>
@@ -7,6 +9,9 @@
 #include <implot.h>
 
 #include <cpptoolkit/ui/widgets/widgets.h>
+#include <cpptoolkit/ui/Application.h>
+#include <cpptoolkit/ui/View.h>
+#include <cpptoolkit/mvvm/Dispatcher.h>
 
 #include "../examples/TestUI.h"
 
@@ -374,6 +379,115 @@ TEST_F(WidgetGalleryTests, SliderCommitsUserChangesBeforeCallbackAndValidatesRan
     EXPECT_THROW((ui::SliderFloatWidget("Invalid", value, 0,
                                        std::numeric_limits<float>::infinity())),
                  std::invalid_argument);
+}
+
+TEST_F(WidgetGalleryTests, AmbientContextsCascadeThroughSpecializedContainers) {
+    mvvm::ObservableObject model, ownModel;
+    ui::Application application;
+    ui::Panel root;
+    root.SetViewModel(&model);
+    root.SetApplication(&application);
+    auto& nested = root.Add<ui::Panel>();
+    auto& child = nested.Add<CountingWidget>();
+    EXPECT_EQ(child.GetViewModel<mvvm::ObservableObject>(), &model);
+    EXPECT_EQ(child.GetApplication(), &application);
+
+    mvvm::ObservableProperty<int> selected{nullptr, "Tab", 0};
+    auto& tabs = root.Add<ui::TabBarWidget>("Tabs", selected);
+    auto& tabChild = tabs.AddTab("A").Add<CountingWidget>();
+    mvvm::ObservableProperty<float> size{nullptr, "Size", 100};
+    auto& splitter = root.Add<ui::SplitterWidget>("Splitter", size);
+    auto& paneChild = splitter.First().Add<CountingWidget>();
+    paneChild.SetViewModel(&ownModel);
+    root.Build();
+    EXPECT_EQ(tabChild.GetViewModel<mvvm::ObservableObject>(), &model);
+    EXPECT_EQ(tabChild.GetApplication(), &application);
+    EXPECT_EQ(paneChild.GetViewModel<mvvm::ObservableObject>(), &ownModel);
+    EXPECT_EQ(paneChild.GetApplication(), &application);
+}
+
+TEST_F(WidgetGalleryTests, OnBuildHookRecursesAndPreBuildReceivesAmbientContext) {
+    class HookWidget : public ui::Widget {
+    public:
+        bool Prepared = false;
+        int Builds = 0;
+        void PreBuild() override { Prepared = HasViewModel(); }
+    protected:
+        void OnBuild() override { ++Builds; Add<CountingWidget>(); }
+    };
+    mvvm::ObservableObject model;
+    ui::Panel root;
+    root.SetViewModel(&model);
+    auto& widget = root.Add<HookWidget>();
+    EXPECT_TRUE(widget.Prepared);
+    root.Build();
+    EXPECT_EQ(widget.Builds, 1);
+    Draw(root);
+}
+
+TEST_F(WidgetGalleryTests, OptionalBindingsAndCallbackButtonsRemainUsable) {
+    ui::Panel panel;
+    panel.Add<ui::TextWidget>("Static text");
+    panel.Add<ui::PlotLineWidget>("Unbound plot");
+    auto& slider = panel.Add<ui::SliderFloatWidget>("Unbound slider", 0, 1, 0.5f);
+    Draw(panel);
+    int clicks = 0;
+    ui::ButtonWidget button("Callback button", [&] { ++clicks; });
+    Click(button, Draw(button));
+    EXPECT_EQ(clicks, 1);
+    int edits = 0;
+    slider.OnValueChanged = [&](float) { ++edits; };
+    Click(slider, Draw(slider));
+    EXPECT_GT(edits, 0);
+}
+
+TEST_F(WidgetGalleryTests, TitledPanelClosesAndReopensWithoutChangingInlineContainers) {
+    ui::Panel window("Titled panel");
+    auto& child = window.Add<CountingWidget>();
+    window.SetFlags(ImGuiWindowFlags_NoCollapse);
+    EXPECT_TRUE(window.HasFlag(ImGuiWindowFlags_NoCollapse));
+    Draw(window);
+    EXPECT_GT(child.Draws, 0);
+    window.SetOpen(false);
+    const int before = child.Draws;
+    Draw(window);
+    EXPECT_EQ(child.Draws, before);
+    window.SetOpen(true);
+    Draw(window);
+    EXPECT_GT(child.Draws, before);
+    window.ClearFlags(ImGuiWindowFlags_NoCollapse);
+    EXPECT_FALSE(window.HasFlag(ImGuiWindowFlags_NoCollapse));
+}
+
+TEST(ApplicationMergeTests, SingletonFactoryAndLegacyAliasShareOneInstance) {
+    class Root : public ui::Widget {};
+    class OtherRoot : public ui::Widget {};
+    EXPECT_THROW(ui::Application::Instance(), std::logic_error);
+    auto& application = ui::Application::Create<Root>();
+    EXPECT_EQ(&application, &ui::Application::Instance());
+    EXPECT_EQ(&application, &ui::Application::GetInstance<Root>());
+    EXPECT_THROW(ui::Application::Create<OtherRoot>(), std::logic_error);
+    application.SetConfigFlags(FLAG_WINDOW_RESIZABLE).SetConfigFlags(FLAG_WINDOW_HIGHDPI);
+    EXPECT_EQ(application.GetConfigFlags(), FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
+    application.ClearConfigFlags(FLAG_WINDOW_HIGHDPI);
+    EXPECT_EQ(application.GetConfigFlags(), FLAG_WINDOW_RESIZABLE);
+}
+
+TEST(ApplicationMergeTests, AsyncQueueAndRenderDispatchExecuteOnSeparateThreads) {
+    const auto callingThread = std::this_thread::get_id();
+    std::promise<std::thread::id> completed;
+    auto future = completed.get_future();
+    ui::Application::RunAsync([&] { completed.set_value(std::this_thread::get_id()); });
+    ASSERT_EQ(future.wait_for(std::chrono::seconds(5)), std::future_status::ready);
+    EXPECT_NE(future.get(), callingThread);
+    bool called = false;
+    ui::Application::Dispatch([&] {
+        EXPECT_EQ(std::this_thread::get_id(), callingThread);
+        called = true;
+    });
+    EXPECT_FALSE(called);
+    mvvm::Dispatcher::Main().ProcessPending();
+    EXPECT_TRUE(called);
 }
 
 } // namespace

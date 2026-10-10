@@ -24,7 +24,10 @@ namespace cpptoolkit::ui {
         /** @brief Construct the owned model.
          *  @param args Arguments forwarded to T's constructor.
          */
-        View(Args&&... args){ this->_viewModel = std::make_shared<T>(std::forward<Args>(args)...); }
+        View(Args&&... args){
+            this->_viewModel = std::make_shared<T>(std::forward<Args>(args)...);
+            this->SetViewModel(this->_viewModel.get());
+        }
         /** @brief Destroy the view and release its shared model reference. */
         virtual ~View() = default;
 

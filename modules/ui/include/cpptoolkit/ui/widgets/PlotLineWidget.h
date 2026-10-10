@@ -30,12 +30,16 @@ public:
      *  @param bound Borrowed float source.
      */
     PlotLineWidget(std::string label, mvvm::ObservableProperty<float>& bound);
+    /** @brief Construct an unbound plot which displays a no-source placeholder.
+     *  @param label Plot heading.
+     */
+    explicit PlotLineWidget(std::string label);
     /** @brief Append a sample and submit the retained history to ImPlot. */
     void Draw() override;
 
 private:
     std::string label_;
-    mvvm::ObservableProperty<float>& bound_;
+    mvvm::ObservableProperty<float>* bound_ = nullptr;
     structs::RingBuffer<float, kHistoryCapacity> history_;
     std::vector<float> scratch_;
 };
