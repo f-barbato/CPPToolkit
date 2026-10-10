@@ -48,6 +48,7 @@ cpptoolkit_add_module(
         cpptoolkit::mvvm
         imgui::imgui
         implot::implot
+        glfw
 )
 
 # Optional sub-functionality: widgets that visualize cpptoolkit::net state.

@@ -63,6 +63,7 @@
     { "name": "default", "configurePreset": "default" },
     { "name": "core-only", "configurePreset": "core-only" },
     { "name": "all-modules", "configurePreset": "all-modules" },
-    { "name": "all-modules-debug", "configurePreset": "all-modules-debug" }
+    { "name": "all-modules-debug", "configurePreset": "all-modules-debug" },
+    { "name": "all-modules-release", "configurePreset": "all-modules-release" }
   ]
 }

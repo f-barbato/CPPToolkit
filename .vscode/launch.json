@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug TestUI (vcpkg + gdb)",
+            "name": "Debug TestUI (vcpkg + gdb) (Windows)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/dist/Debug/Windows/AMD64/bin/cpptoolkit_ui_demo.exe",
@@ -18,6 +18,26 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "C:\\TDM-GCC-64\\bin\\gdb.exe",
+            "setupCommands": [
+                {
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build debug"
+        },
+        {
+            "name": "Debug TestUI (vcpkg + gdb) (Linux)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/dist/Debug/Linux/x86_64/bin/cpptoolkit_ui_demo",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/dist/Debug/Linux/x86_64/bin",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
             "setupCommands": [
                 {
                     "text": "-enable-pretty-printing",
