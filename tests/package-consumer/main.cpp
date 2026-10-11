@@ -4,6 +4,7 @@
 #include <cpptoolkit/platform/Platform.h>
 #include <cpptoolkit/struct/RingBuffer.h>
 #include <cpptoolkit/algo/Algo.h>
+#include <cpptoolkit/concurrency/concurrency.h>
 #include <cpptoolkit/mvvm/mvvm.h>
 #include <cpptoolkit/net/net.h>
 
@@ -21,6 +22,11 @@ int main() {
     structs::RingBuffer<int, 4> values;
     values.Push(7);
     require(values.At(0) == 7);
+    concurrency::CancellationSource cancellation;
+    const auto token = cancellation.Token();
+    require(!token.IsCancellationRequested());
+    cancellation.Cancel();
+    require(token.IsCancellationRequested());
     bool dispatched = false;
     mvvm::Dispatcher::Main().Post([&] { dispatched = true; });
     mvvm::Dispatcher::Main().ProcessPending();

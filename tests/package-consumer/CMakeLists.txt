@@ -8,6 +8,7 @@ enable_testing()
 add_executable(package_consumer main.cpp)
 target_link_libraries(package_consumer PRIVATE
     cpptoolkit::platform cpptoolkit::struct cpptoolkit::mvvm cpptoolkit::net cpptoolkit::algo
+    cpptoolkit::concurrency
 )
 if(CPPTOOLKIT_CONSUMER_UI)
     target_link_libraries(package_consumer PRIVATE cpptoolkit::ui)

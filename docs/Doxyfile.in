@@ -5,6 +5,7 @@ OUTPUT_DIRECTORY       = "@CMAKE_CURRENT_BINARY_DIR@/docs"
 INPUT                  = "@CMAKE_CURRENT_SOURCE_DIR@/docs/mainpage.dox" \
                          "@CMAKE_CURRENT_SOURCE_DIR@/modules/platform/include" \
                          "@CMAKE_CURRENT_SOURCE_DIR@/modules/struct/include" \
+                         "@CMAKE_CURRENT_SOURCE_DIR@/modules/concurrency/include" \
                          "@CMAKE_CURRENT_SOURCE_DIR@/modules/mvvm/include" \
                          "@CMAKE_CURRENT_SOURCE_DIR@/modules/algo/include" \
                          "@CMAKE_CURRENT_SOURCE_DIR@/modules/net/include" \
@@ -22,7 +23,7 @@ OPTIMIZE_OUTPUT_FOR_C  = NO
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
-PREDEFINED            = CPPTOOLKIT_UI_EXPORT= CPPTOOLKIT_MVVM_EXPORT= CPPTOOLKIT_NET_EXPORT=
+PREDEFINED            = CPPTOOLKIT_UI_EXPORT= CPPTOOLKIT_MVVM_EXPORT= CPPTOOLKIT_NET_EXPORT= CPPTOOLKIT_CONCURRENCY_EXPORT=
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
 GENERATE_XML           = YES

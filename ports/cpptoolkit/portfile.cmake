@@ -10,6 +10,7 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
         platform        CPPTOOLKIT_BUILD_PLATFORM
         struct          CPPTOOLKIT_BUILD_STRUCT
+        concurrency     CPPTOOLKIT_BUILD_CONCURRENCY
         mvvm            CPPTOOLKIT_BUILD_MVVM
         algo            CPPTOOLKIT_BUILD_ALGO
         ui              CPPTOOLKIT_BUILD_UI

@@ -8,6 +8,7 @@ A modular C++ toolkit distributed as a single [vcpkg](https://vcpkg.io) package,
 |---|---|
 | `platform` | Operating system and platform information utilities |
 | `struct` | Common data structures (ring buffers, etc.) |
+| `concurrency` | General-purpose concurrency primitives and cooperative cancellation |
 | `mvvm` | MVVM pattern for C++: `Observable<T>`, `ObservableObject` / `ObservableProperty<T>`, `Command`, thread-safe dispatching |
 | `algo` | Collection of algorithm integrations |
 | `ui` | A "retained-mode" layer on top of immediate-mode GUIs (Dear ImGui), with data binding to `mvvm` |
@@ -67,7 +68,7 @@ Set `VCPKG_ROOT` to the vcpkg checkout before configuring presets.
 
 ### Static and shared libraries
 
-Compiled modules (`mvvm`, `net`, `ui`) follow `BUILD_SHARED_LIBS` (default
+Compiled modules (`concurrency`, `mvvm`, `net`, `ui`) follow `BUILD_SHARED_LIBS` (default
 `OFF`). `platform`, `struct` and `algo` are header-only and remain interface
 targets. Each compiled module produces its own library, not one monolithic DLL.
 Generated `Export.h` headers provide Windows exports/imports and static-build

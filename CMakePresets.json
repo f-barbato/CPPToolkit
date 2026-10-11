@@ -16,11 +16,12 @@
     },
     {
       "name": "core-only",
-      "displayName": "Core modules (platform, struct, mvvm, algo) — no external dependencies",
+      "displayName": "Core modules (platform, struct, concurrency, mvvm, algo) — no external dependencies",
       "inherits": "default",
       "cacheVariables": {
         "CPPTOOLKIT_BUILD_PLATFORM": "ON",
         "CPPTOOLKIT_BUILD_STRUCT": "ON",
+        "CPPTOOLKIT_BUILD_CONCURRENCY": "ON",
         "CPPTOOLKIT_BUILD_MVVM": "ON",
         "CPPTOOLKIT_BUILD_ALGO": "ON"
       }
@@ -32,6 +33,7 @@
       "cacheVariables": {
         "CPPTOOLKIT_BUILD_PLATFORM": "ON",
         "CPPTOOLKIT_BUILD_STRUCT": "ON",
+        "CPPTOOLKIT_BUILD_CONCURRENCY": "ON",
         "CPPTOOLKIT_BUILD_MVVM": "ON",
         "CPPTOOLKIT_BUILD_ALGO": "ON",
         "CPPTOOLKIT_BUILD_UI": "ON",

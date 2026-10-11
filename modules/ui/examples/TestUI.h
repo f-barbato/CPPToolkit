@@ -8,6 +8,10 @@
 #include <cpptoolkit/mvvm/mvvm.h>
 #include <cpptoolkit/ui/widgets/widgets.h>
 
+#if defined(CPPTOOLKIT_TESTUI_HAS_CONCURRENCY)
+#include "CancellationExample.h"
+#endif
+
 struct TestUIState : cpptoolkit::mvvm::ObservableObject {
     template <typename T>
     using Property = cpptoolkit::mvvm::ObservableProperty<T>;
@@ -140,6 +144,9 @@ inline void BuildTestUIWidgets(cpptoolkit::ui::Widget& root, TestUIState& vm) {
     feedback.Add<ui::ButtonWidget>("Show notification", vm.Notify);
     feedback.Add<ui::TextWidget>(vm.Message);
     feedback.Add<ui::ImageWidget>(vm.Texture, ImVec2(256, 128));
+#if defined(CPPTOOLKIT_TESTUI_HAS_CONCURRENCY)
+    feedback.Add<CancellationExampleWidget>();
+#endif
 
     auto& data = tabs.AddTab("Data");
     data.Add<ui::SelectableWidget>("Selectable item", vm.Selected, [&vm](bool value) {

@@ -6,7 +6,7 @@
     {
       "name": "cpptoolkit",
       "default-features": false,
-      "features": ["platform", "struct", "mvvm", "algo", "net", "ui"]
+      "features": ["platform", "struct", "concurrency", "mvvm", "algo", "net", "ui"]
     }
   ],
   "overrides": [

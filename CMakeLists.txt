@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(CPPToolkit
     VERSION 0.1.0
-    DESCRIPTION "Modular C++ toolkit: platform, struct, mvvm, algo, ui, net"
+    DESCRIPTION "Modular C++ toolkit: platform, struct, concurrency, mvvm, algo, ui, net"
     HOMEPAGE_URL "https://github.com/f-barbato/CPPToolkit"
     LANGUAGES CXX
 )
@@ -15,6 +15,7 @@ include(CPPToolkitModule)
 # ---------------------------------------------------------------------------
 option(CPPTOOLKIT_BUILD_PLATFORM "Build the platform module" OFF)
 option(CPPTOOLKIT_BUILD_STRUCT "Build the struct module" OFF)
+option(CPPTOOLKIT_BUILD_CONCURRENCY "Build the concurrency module" OFF)
 option(CPPTOOLKIT_BUILD_MVVM "Build the mvvm module" OFF)
 option(CPPTOOLKIT_BUILD_ALGO "Build the algo module" OFF)
 option(CPPTOOLKIT_BUILD_UI "Build the ui module" OFF)
@@ -60,7 +61,8 @@ if(CPPTOOLKIT_BUILD_MVVM)
 endif()
 
 if(NOT (CPPTOOLKIT_BUILD_PLATFORM OR CPPTOOLKIT_BUILD_STRUCT OR CPPTOOLKIT_BUILD_MVVM OR
-        CPPTOOLKIT_BUILD_ALGO OR CPPTOOLKIT_BUILD_UI OR CPPTOOLKIT_BUILD_NET))
+        CPPTOOLKIT_BUILD_ALGO OR CPPTOOLKIT_BUILD_UI OR CPPTOOLKIT_BUILD_NET OR
+        CPPTOOLKIT_BUILD_CONCURRENCY))
     message(WARNING "CPPToolkit: no module enabled. Enable at least one CPPTOOLKIT_BUILD_<MODULE> option.")
 endif()
 
@@ -85,7 +87,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CPPTOOLKIT_DIST_DIR}/bin")
 # cpptoolkitTargets is populated by cpptoolkit_add_module() as each module is processed.
 # Order matters: 'net' must be configured before 'ui' so that ui can detect
 # the cpptoolkit::net target for its optional net-widgets sub-functionality.
-foreach(module platform struct net mvvm algo ui)
+foreach(module platform struct concurrency net mvvm algo ui)
     string(TOUPPER "${module}" MODULE_UPPER)
     if(CPPTOOLKIT_BUILD_${MODULE_UPPER})
         add_subdirectory(modules/${module})
@@ -95,7 +97,7 @@ endforeach()
 add_custom_target(cpptoolkit_stage_headers ALL
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${CPPTOOLKIT_DIST_DIR}/include"
 )
-foreach(module platform struct mvvm algo ui net)
+foreach(module platform struct concurrency mvvm algo ui net)
     set(module_include_dir "${CMAKE_CURRENT_SOURCE_DIR}/modules/${module}/include")
     if(EXISTS "${module_include_dir}")
         add_custom_command(TARGET cpptoolkit_stage_headers POST_BUILD

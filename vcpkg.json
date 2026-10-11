@@ -1,7 +1,7 @@
 {
   "name": "cpptoolkit",
   "version": "0.1.0",
-  "description": "Modular C++ toolkit: platform, struct, mvvm, algo, ui, net",
+  "description": "Modular C++ toolkit: platform, struct, concurrency, mvvm, algo, ui, net",
   "homepage": "https://github.com/f-barbato/CPPToolkit",
   "license": "Apache-2.0",
   "dependencies": [
@@ -20,6 +20,9 @@
     },
     "struct": {
       "description": "Data structures (ring buffer, etc.)"
+    },
+    "concurrency": {
+      "description": "General-purpose concurrency primitives (cooperative cancellation)"
     },
     "mvvm": {
       "description": "MVVM pattern for C++ (Observable, ObservableProperty, Command, Dispatcher)",

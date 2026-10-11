@@ -9,6 +9,7 @@
  *
  * - platform: operating-system and architecture identification.
  * - struct: fixed-capacity data structures, including structs::RingBuffer.
+ * - concurrency: independent cooperative cancellation sources and tokens.
  * - mvvm: observable properties, subscriptions, commands and work queues.
  * - algo: reserved namespace for algorithm integrations.
  * - ui: persistent widgets drawn every frame using Dear ImGui and ImPlot.
@@ -86,6 +87,9 @@
  */
 /** @namespace cpptoolkit::mvvm
  *  @brief Observable state, commands and thread handoff utilities.
+ */
+/** @namespace cpptoolkit::concurrency
+ *  @brief General-purpose concurrency primitives and cooperative cancellation.
  */
 /** @namespace cpptoolkit::algo
  *  @brief Namespace reserved for algorithm integrations.

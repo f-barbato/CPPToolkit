@@ -12,6 +12,7 @@ CPPToolkit is a **modular C++ toolkit** distributed as a **single vcpkg package*
 |---|---|
 | `platform` | Operating system / platform information utilities |
 | `struct` | Common data structures (ring buffers, etc.) |
+| `concurrency` | General-purpose concurrency primitives and cooperative cancellation |
 | `mvvm` | MVVM pattern for C++ (see below) |
 | `algo` | Algorithm integrations |
 | `ui` | Retained-mode layer on top of an immediate-mode GUI, bound via `mvvm` |
@@ -58,6 +59,12 @@ cpptoolkit_add_module(
 )
 ```
 Each module exposes a target named `cpptoolkit::<name>`.
+
+### Concurrency module design
+- Independent compiled module with no MVVM/UI dependencies; follows `BUILD_SHARED_LIBS` and uses generated `Export.h` annotations.
+- `CancellationSource` / `CancellationToken` provide cooperative cancellation through shared atomic state. Tasks poll the token; cancellation neither interrupts work nor removes queued tasks. Destroying the source does not cancel its tokens.
+- `Dispatcher` and `NotificationWorker` remain in `mvvm`; the new module does not change `Application::RunAsync()` serialization.
+- When enabled alongside UI, TestUI's Feedback tab shows an optional cancellation widget with Start/Cancel, progress/status and an owned thread that is cancelled/joined on teardown; see `modules/ui/examples/CancellationExample.h`.
 
 ### MVVM module design
 Adapts C#/WPF-style MVVM to immediate-mode rendering:

@@ -3,4 +3,8 @@ include(GoogleTest)
 
 add_executable(cpptoolkit_ui_tests TextBoxWidgetTests.cpp WidgetGalleryTests.cpp InputWidgetsTests.cpp RaylibRenderingTests.cpp)
 target_link_libraries(cpptoolkit_ui_tests PRIVATE cpptoolkit::ui GTest::gtest_main)
+if(TARGET cpptoolkit::concurrency)
+    target_link_libraries(cpptoolkit_ui_tests PRIVATE cpptoolkit::concurrency)
+    target_compile_definitions(cpptoolkit_ui_tests PRIVATE CPPTOOLKIT_TESTUI_HAS_CONCURRENCY=1)
+endif()
 gtest_discover_tests(cpptoolkit_ui_tests)

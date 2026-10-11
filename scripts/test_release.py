@@ -68,7 +68,7 @@ class ReleaseTests(unittest.TestCase):
                 extension = {"Linux": ".so", "Windows": ".dll", "Darwin": ".dylib"}[system]
                 library_dir = prefix / ("bin" if system == "Windows" else "lib")
                 library_dir.mkdir(parents=True, exist_ok=True)
-                for module in ("mvvm", "net", "ui"):
+                for module in ("concurrency", "mvvm", "net", "ui"):
                     (library_dir / f"cpptoolkit_{module}{extension}").write_text("shared")
                 debug = prefix / "debug/lib/debug-only"
                 debug.parent.mkdir(parents=True, exist_ok=True)

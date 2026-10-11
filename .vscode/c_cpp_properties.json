@@ -1,20 +1,24 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/modules/*/include",
+                "${workspaceFolder}/build/all-modules-debug/modules/*/include",
+                "${workspaceFolder}/build/all-modules-debug/modules/ui/rlimgui",
+                "${workspaceFolder}/build/all-modules-debug/_deps/rlimgui-src",
+                "${workspaceFolder}/build/all-modules-debug/vcpkg_installed/x64-linux/include"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "windowsSdkVersion": "10.0.26100.0",
-            "compilerPath": "cl.exe",
+            "compilerPath": "/usr/bin/c++",
+            "compileCommands": "${workspaceFolder}/build/all-modules-debug/compile_commands.json",
             "cStandard": "c23",
             "cppStandard": "c++23",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

@@ -71,6 +71,61 @@ protected:
 
 using namespace cpptoolkit;
 
+#if defined(CPPTOOLKIT_TESTUI_HAS_CONCURRENCY)
+TEST_F(WidgetGalleryTests, CancellationExampleStartsCancelsAndRestartsFromButtons) {
+    CancellationExampleWidget example;
+    example.Build();
+    Draw(example);
+    auto& state = example.State;
+    ui::ButtonWidget start("Start task", state.Start);
+    ui::ButtonWidget cancel("Cancel task", state.Cancel);
+    EXPECT_TRUE(state.Start.CanExecute());
+    EXPECT_FALSE(state.Cancel.CanExecute());
+
+    Click(start, Draw(start));
+    EXPECT_TRUE(state.Running.Get());
+    EXPECT_FALSE(state.Start.CanExecute());
+    EXPECT_TRUE(state.Cancel.CanExecute());
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    while (state.Progress.Get() == 0 && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    EXPECT_GT(state.Progress.Get(), 0.0f);
+    Draw(example);
+    Click(cancel, Draw(cancel));
+    state.StopAndJoin();
+    EXPECT_FALSE(state.Running.Get());
+    EXPECT_EQ(state.Status.Get(), "Cancelled");
+    EXPECT_LT(state.Progress.Get(), 1.0f);
+
+    Click(start, Draw(start));
+    EXPECT_TRUE(state.Running.Get());
+    EXPECT_TRUE(state.Cancel.CanExecute());
+    example.Destroy();
+    EXPECT_FALSE(state.Running.Get());
+    EXPECT_EQ(state.Status.Get(), "Cancelled");
+}
+
+TEST_F(WidgetGalleryTests, CancellationExampleCompletesWithoutCancellation) {
+    CancellationExampleState state;
+    state.Start.Execute();
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (state.Running.Get() && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    EXPECT_FALSE(state.Running.Get());
+    EXPECT_EQ(state.Status.Get(), "Completed");
+    EXPECT_FLOAT_EQ(state.Progress.Get(), 1.0f);
+    EXPECT_TRUE(state.Start.CanExecute());
+    EXPECT_FALSE(state.Cancel.CanExecute());
+}
+
+TEST_F(WidgetGalleryTests, CancellationExampleCancelsOnDestruction) {
+    CancellationExampleWidget example;
+    example.State.Start.Execute();
+    EXPECT_TRUE(example.State.Running.Get());
+}
+#endif
+
 TEST_F(WidgetGalleryTests, SelectableUpdatesBeforeCallbackAndIgnoresPolling) {
     mvvm::ObservableProperty<bool> selected{nullptr, "Selected", false};
     int calls = 0;

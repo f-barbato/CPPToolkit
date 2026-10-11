@@ -119,12 +119,28 @@ and `GetApplication()`; explicitly attached child models are preserved.
 Contexts must outlive their widgets and must be set before tree construction.
 
 `Application::Create<Root>()` creates one process-wide application for a root
-type; `Instance()` retrieves it, and `GetInstance<Root>()` remains a compatibility
-alias. Creating a different root type later throws. Fluent setters support
-runtime window configuration. `RunAsync()` queues serialized background work;
+type; `Instance()` retrieves it, and `GetInstance<Root>()` remains a
+compatibility alias. Creating a different root type later throws. Fluent
+setters support runtime window configuration. `RunAsync()` queues serialized
+background work on one worker thread; it does not run each task in parallel.
+Use a dedicated thread or thread pool for independent parallel tasks.
+Enable the optional `concurrency` feature and link `cpptoolkit::concurrency`
+to pass a `concurrency::CancellationToken` to long-running
+work and check `IsCancellationRequested()` regularly to stop cooperatively;
+cancellation does not interrupt work or remove a task from the queue.
 `Dispatch()` queues work drained in an active GUI frame on the render thread.
 Use owned/weak captures for background work, never dangling widget/model
 pointers. Teardown covers exceptions during construction as well as rendering.
+
+With `CPPTOOLKIT_BUILD_CONCURRENCY=ON`, TestUI's **Feedback** tab also includes
+a cancellation example (`examples/CancellationExample.h`). **Start task**
+launches a dedicated background thread and updates bound progress/status
+properties. **Cancel task** requests cancellation through a `CancellationSource`;
+the worker captures its token and checks it after each bounded work chunk.
+Start is disabled during execution, and a fresh source is created for each run.
+The widget cancels and joins its worker during teardown/destruction, keeping
+the captured state alive until the worker exits. The UI module itself does not
+depend on `concurrency`; this optional example links it explicitly.
 
 ### Concrete widgets (`cpptoolkit/ui/widgets/widgets.h`)
 

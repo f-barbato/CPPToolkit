@@ -1,7 +1,7 @@
 # Installed-package regression consumer
 
 This is a standalone consumer, not an `add_subdirectory` build of CPPToolkit.
-It exercises header-only modules, exported MVVM/net methods and optionally
+It exercises header-only modules, exported concurrency/MVVM/net methods and optionally
 renders UI widgets using contexts created in the consumer executable.
 No graphical window is required.
 
