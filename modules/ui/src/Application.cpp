@@ -48,8 +48,10 @@ namespace cpptoolkit::ui {
                 SetWindowMinSize(this->_minWidth, this->_minHeight);
             if (this->_hasIcon) SetWindowIcon(this->_icon);
             ::SetTargetFPS(this->_targetFPS);
-            rlImGuiSetup(this->_darkTheme);
+            rlImGuiSetup(IsDarkTheme());
             guiReady = true;
+            _styler.Apply();
+            _stylePending = false;
             ImPlot::CreateContext();
             plotReady = true;
             this->_running = true;
@@ -83,6 +85,10 @@ namespace cpptoolkit::ui {
     }
 
     void Application::Draw() {
+        if (_stylePending) {
+            _styler.Apply();
+            _stylePending = false;
+        }
         BeginDrawing();
         struct DrawingGuard {
             ~DrawingGuard() { EndDrawing(); }
@@ -167,14 +173,14 @@ namespace cpptoolkit::ui {
     }
 
     Application& Application::SetDarkTheme(bool darkTheme) {
-        this->_darkTheme = darkTheme;
-        // rlImGuiSetup() only applies the initial theme at startup; once
-        // the ImGui context exists, toggling at runtime just needs the
-        // matching style preset re-applied directly.
-        if (this->_running) {
-            if (darkTheme) ImGui::StyleColorsDark();
-            else ImGui::StyleColorsLight();
-        }
+        _styler.SetTheme(darkTheme ? Theme::Dark : Theme::Light);
+        _stylePending = true;
+        return *this;
+    }
+
+    Application& Application::SetStyler(const Styler& styler) {
+        _styler = styler;
+        _stylePending = true;
         return *this;
     }
 

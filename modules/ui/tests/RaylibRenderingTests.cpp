@@ -95,4 +95,35 @@ TEST(RaylibRenderingTests, ApplicationRendersSharedModelTextureBeforeGuiAndClean
     }
 }
 
+class StylingRoot : public ui::Widget {
+public:
+    int Frames = 0;
+    void Draw() override {
+        EXPECT_FLOAT_EQ(ImGui::GetStyle().FrameRounding, Frames == 0 ? 3 : 12);
+        if (Frames++ == 0) {
+            auto styler = GetApplication()->GetStyler();
+            styler.SetTheme(ui::Theme::Classic);
+            styler.GetStyle().FrameRounding = 12;
+            GetApplication()->SetStyler(styler);
+            EXPECT_FLOAT_EQ(ImGui::GetStyle().FrameRounding, 3);
+        } else {
+            GetApplication()->Stop();
+        }
+    }
+};
+
+TEST(RaylibRenderingTests, StylerAppliesBeforeFirstFrameAndDefersRuntimeChanges) {
+#if defined(__linux__)
+    if (!std::getenv("DISPLAY")) GTEST_SKIP() << "Requires an X11 display (use xvfb-run)";
+#endif
+    auto root = std::make_shared<StylingRoot>();
+    ui::Styler styler;
+    styler.GetStyle().FrameRounding = 3;
+    ui::Application application(root);
+    application.SetStyler(styler).SetConfigFlags(FLAG_WINDOW_HIDDEN)
+        .SetInitialSize(200, 200).SetTargetFPS(0);
+    EXPECT_EQ(application.Run(), 0);
+    EXPECT_EQ(root->Frames, 2);
+}
+
 } // namespace

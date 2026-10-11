@@ -5,6 +5,7 @@
  */
 
 #include "cpptoolkit/ui/Widget.h"
+#include "cpptoolkit/ui/Styler.h"
 #include "cpptoolkit/ui/widgets/widgets.h"
 #include <functional>
 #include <memory>
@@ -73,11 +74,22 @@ public:
      *  @return This application.
      */
     Application& SetTargetFPS(int targetFPS);
-    /** @brief Set the initial or runtime ImGui theme.
+    /** @brief Select Dark/Light, preserving metrics; runtime updates apply next frame.
      *  @param darkTheme True for dark, false for light.
      *  @return This application.
      */
     Application& SetDarkTheme(bool darkTheme);
+    /** @brief Store a global style, applying runtime changes at the next frame.
+     *  @param styler Style copied into the application.
+     *  @return This application.
+     *  @note Render-thread-only. Subsequent edits to the argument do not affect
+     *        the application; call SetStyler() again to commit them.
+     */
+    Application& SetStyler(const Styler& styler);
+    /** @brief Inspect the configured global style.
+     *  @return Owned style, which may be pending application next frame.
+     */
+    [[nodiscard]] const Styler& GetStyler() const { return _styler; }
     /** @brief Set the frame clear color.
      *  @param backgroundColor raylib color.
      *  @return This application.
@@ -111,7 +123,7 @@ public:
     /** @brief Query the selected theme.
      *  @return True for dark.
      */
-    [[nodiscard]] bool IsDarkTheme() const { return _darkTheme; }
+    [[nodiscard]] bool IsDarkTheme() const { return _styler.GetTheme() == Theme::Dark; }
     /** @brief Query the clear color.
      *  @return Current background color.
      */
@@ -185,7 +197,8 @@ private:
     bool _hasIcon = false;
     Image _icon{};
     int _targetFPS = 60;
-    bool _darkTheme = false;
+    Styler _styler{Theme::Light};
+    bool _stylePending = false;
     Color _backgroundColor = RAYWHITE;
     ErrorHandler _onError;
     std::shared_ptr<Widget> _rootView;

@@ -141,6 +141,34 @@ Start is disabled during execution, and a fresh source is created for each run.
 The widget cancels and joins its worker during teardown/destruction, keeping
 the captured state alive until the worker exits. The UI module depends on `concurrency`, so the example is included with UI builds.
 
+### Global styling
+
+`Styler` owns an `ImGuiStyle` and supports `Theme::Dark`, `Theme::Light` and
+`Theme::Classic`. Construction and customization do not require an ImGui
+context. `GetStyle()` exposes all ImGui colors and metrics, including padding,
+spacing, borders and rounding. `SetTheme()` replaces the color palette but
+preserves customized metrics.
+
+```cpp
+ui::Styler styler(ui::Theme::Dark);
+styler.GetStyle().WindowRounding = 8;
+styler.GetStyle().FrameBorderSize = 1;
+styler.GetStyle().ItemSpacing = ImVec2(10, 8);
+styler.GetStyle().Colors[ImGuiCol_Button] = ImVec4(0.2f, 0.4f, 0.7f, 1);
+ui::Application::Create<Root>().SetStyler(styler);
+```
+
+`Application::SetStyler()` copies the configuration and applies it after backend
+initialization, before building widgets. Runtime changes are applied at the
+start of the next frame, outside any widget style stacks. To edit the current
+configuration, copy `GetStyler()`, customize it, then call `SetStyler()` again.
+All style operations are render-thread-only; background code must dispatch
+them with `Application::Dispatch()`. `Styler::Apply()` is available for standalone
+ImGui usage and requires a current context and no active widget/style scopes.
+The legacy `SetDarkTheme()` selects Dark/Light while preserving metrics; the
+application still defaults to Light. TestUI's editor layout controls include
+buttons for switching all three palettes at runtime.
+
 ### Concrete widgets (`cpptoolkit/ui/widgets/widgets.h`)
 
 - `TextWidget` — read-only text, polls a bound `ObservableProperty<std::string>`.

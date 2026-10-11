@@ -88,6 +88,7 @@ set(UI_SOURCES
     src/widgets/EditorLayoutWidget.cpp
     src/widgets/TextWidget.cpp
     src/Application.cpp
+    src/Styler.cpp
 )
 
 cpptoolkit_add_module(

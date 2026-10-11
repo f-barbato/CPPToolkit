@@ -153,6 +153,18 @@ protected:
         Top().Add<ui::ButtonWidget>("Reset phase", vm->ResetCommand);
         auto& controls = Add<ui::Panel>("Editor layout controls");
         controls.Add<ui::TextWidget>("Layout presets");
+        controls.Add<ui::TextWidget>("Global ImGui theme");
+        for (const auto& [label, theme] : {
+                 std::pair{"Dark theme", ui::Theme::Dark},
+                 std::pair{"Light theme", ui::Theme::Light},
+                 std::pair{"Classic theme", ui::Theme::Classic}}) {
+            controls.Add<ui::ButtonWidget>(label, [this, theme] {
+                auto styler = GetApplication()->GetStyler();
+                styler.SetTheme(theme);
+                GetApplication()->SetStyler(styler);
+            });
+        }
+
         controls.Add<ui::ButtonWidget>("Full-height left", [this] {
             SetLayout(ui::EditorLayout::LeftFullHeight);
         });

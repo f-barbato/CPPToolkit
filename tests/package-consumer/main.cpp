@@ -90,6 +90,9 @@ int main() {
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
     ui::Application application;
-    application.SetTitle("Installed shared consumer").SetInitialSize(800, 600);
+    ui::Styler styler(ui::Theme::Classic);
+    styler.GetStyle().FrameRounding = 6;
+    application.SetStyler(styler).SetTitle("Installed shared consumer").SetInitialSize(800, 600);
+    require(application.GetStyler().GetTheme() == ui::Theme::Classic);
 #endif
 }

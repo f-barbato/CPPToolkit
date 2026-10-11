@@ -78,6 +78,7 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
   - A `NotificationWorker` (single dedicated background thread, FIFO queue) can run `Observable::Notify` callbacks off the calling thread when handlers do non-trivial work — ordering is preserved per-thread, but all notifications serialize through it (no parallel handler execution).
 
 ### UI module design
+- `Styler` owns global `ImGuiStyle` settings with Dark/Light/Classic palettes and customizable colors/metrics. `Application::SetStyler()` copies configuration and applies runtime updates at the next frame boundary; legacy `SetDarkTheme()` preserves metrics. Style operations are render-thread-only.
 - Goal: make ImGui (immediate-mode) feel "retained" — a persistent widget tree built **once**, bound to `mvvm` properties, redrawn each frame.
 - `Widget` base class with virtual `Draw()`; `Panel` is a container (`Add<T>(...)`, `Remove(...)`) holding `unique_ptr<Widget>` children.
 - `Widget::OnBuild()` is the preferred construction hook; virtual `Build()` remains for compatibility with existing specialized containers. `PreBuild()` receives contexts after `Add()`. Ambient borrowed ViewModel/Application contexts cascade to descendants; tabs and splitter panes inherit them during build. `Panel()` stays inline; `Panel(title)` opens a standalone window; `DockedPanel` hosts the viewport dockspace.

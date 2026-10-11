@@ -5,6 +5,7 @@
  */
 
 #include "cpptoolkit/ui/Application.h"
+#include "cpptoolkit/ui/Styler.h"
 #include "cpptoolkit/ui/View.h"
 #include "cpptoolkit/ui/Panel.h"
 #include "cpptoolkit/ui/Widget.h"
