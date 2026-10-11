@@ -1,6 +1,8 @@
-#include "cpptoolkit/mvvm/NotificationWorker.h"
+#include "cpptoolkit/concurrency/NotificationWorker.h"
 
-namespace cpptoolkit::mvvm {
+#include <utility>
+
+namespace cpptoolkit::concurrency {
 
 NotificationWorker& NotificationWorker::Instance() {
     static NotificationWorker instance;
@@ -40,4 +42,4 @@ void NotificationWorker::Run() {
     }
 }
 
-} // namespace cpptoolkit::mvvm
+} // namespace cpptoolkit::concurrency

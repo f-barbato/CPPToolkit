@@ -6,3 +6,5 @@
  */
 
 #include "cpptoolkit/concurrency/CancellationToken.h"
+#include "cpptoolkit/concurrency/Dispatcher.h"
+#include "cpptoolkit/concurrency/NotificationWorker.h"

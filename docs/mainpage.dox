@@ -9,14 +9,14 @@
  *
  * - platform: operating-system and architecture identification.
  * - struct: fixed-capacity data structures, including structs::RingBuffer.
- * - concurrency: independent cooperative cancellation sources and tokens.
- * - mvvm: observable properties, subscriptions, commands and work queues.
+ * - concurrency: cooperative cancellation, dispatching and background work queues.
+ * - mvvm: observable properties, subscriptions and commands.
  * - algo: reserved namespace for algorithm integrations.
  * - ui: persistent widgets drawn every frame using Dear ImGui and ImPlot.
  * - net: transport contracts, placeholder serial/TCP backends and optional
  *   SimpleBLE connection management.
  *
- * Enabling ui enables mvvm, which enables struct. The current module helper
+ * Enabling ui enables concurrency and mvvm, which enables struct. The current module helper
  * requests C++23. Tests, examples and this documentation are opt-in.
  * Compiled modules follow BUILD_SHARED_LIBS and expose generated per-module
  * Export.h headers; header-only modules remain interface targets. The vcpkg
@@ -35,7 +35,7 @@
  * Widget trees, callback assignments and ImGui state belong to the render
  * thread; only property access is mutex-protected. Do not add/remove/destroy
  * widgets from inside an active Draw()/callback traversal. Defer structural
- * changes until after rendering. Use mvvm::Dispatcher for actions that must be
+ * changes until after rendering. Use concurrency::Dispatcher for actions that must be
  * marshalled to the render thread.
  *
  * TableWidget::OnSortRequested is a request to the ViewModel, not an automatic
@@ -86,7 +86,7 @@
  *  @brief Fixed-capacity data structures.
  */
 /** @namespace cpptoolkit::mvvm
- *  @brief Observable state, commands and thread handoff utilities.
+ *  @brief Observable state and commands.
  */
 /** @namespace cpptoolkit::concurrency
  *  @brief General-purpose concurrency primitives and cooperative cancellation.

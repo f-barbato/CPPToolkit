@@ -150,9 +150,9 @@ public:
      *  @throws std::logic_error If Create() has not been called.
      */
     static Application& Instance();
-    /** @brief Queue work on the single NotificationWorker thread.
+    /** @brief Queue work on the single concurrency::NotificationWorker thread.
      *  @param work Background task; own captured lifetimes and do not call ImGui directly.
-     *  @note Tasks serialize; uncaught task exceptions follow NotificationWorker semantics.
+     *  @note Tasks serialize; uncaught task exceptions follow concurrency::NotificationWorker semantics.
      */
     static void RunAsync(std::function<void()> work);
     /** @brief Queue an action for the render thread.
@@ -166,7 +166,7 @@ protected:
      */
     bool IsRunning();
     /** @brief Clear, invoke root Render() with raylib, then root Draw() with ImGui.
-     *  @note Render precedes Dispatcher processing, which remains inside the ImGui
+     *  @note Render precedes concurrency::Dispatcher processing, which remains inside the ImGui
      *        frame. Dispatched changes therefore reach Render on the next frame.
      *        Both backend frame scopes are closed even when a widget throws.
      */

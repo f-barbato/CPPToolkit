@@ -1,6 +1,8 @@
-#include "cpptoolkit/mvvm/Dispatcher.h"
+#include "cpptoolkit/concurrency/Dispatcher.h"
 
-namespace cpptoolkit::mvvm {
+#include <utility>
+
+namespace cpptoolkit::concurrency {
 
 Dispatcher& Dispatcher::Main() {
     static Dispatcher instance;
@@ -21,4 +23,4 @@ void Dispatcher::ProcessPending() {
     for (auto& action : toRun) action();
 }
 
-} // namespace cpptoolkit::mvvm
+} // namespace cpptoolkit::concurrency

@@ -12,7 +12,7 @@
 #include <cpptoolkit/ui/widgets/widgets.h>
 #include <cpptoolkit/ui/Application.h>
 #include <cpptoolkit/ui/View.h>
-#include <cpptoolkit/mvvm/Dispatcher.h>
+#include <cpptoolkit/concurrency/Dispatcher.h>
 
 #include "../examples/TestUI.h"
 
@@ -1013,7 +1013,7 @@ TEST(ApplicationMergeTests, AsyncQueueAndRenderDispatchExecuteOnSeparateThreads)
         called = true;
     });
     EXPECT_FALSE(called);
-    mvvm::Dispatcher::Main().ProcessPending();
+    concurrency::Dispatcher::Main().ProcessPending();
     EXPECT_TRUE(called);
 }
 

@@ -8,18 +8,17 @@ MVVM pattern for C++, adapted to immediate-mode UI rendering (see the `ui` modul
 - `ObservableObject` — ViewModel base class; raises a generic "property changed by name" notification, mirroring `CommunityToolkit.Mvvm`'s `ObservableObject`.
 - `ObservableProperty<T>` — mutex-protected observable property, analogous to `[ObservableProperty]`. Notifies both its own subscribers and its owning `ObservableObject`.
 - `Command` — action + optional `CanExecute` guard, analogous to `ICommand`.
-- `Dispatcher` — marshals actions onto whichever thread calls `ProcessPending()` (typically the render thread). Only needed when a background-thread handler must call UI APIs directly.
-- `NotificationWorker` — single dedicated background thread that runs posted tasks in FIFO order; can be used to run `Observable<T>::Notify` handlers off the calling thread.
 
 ## Thread-safety model
 
 - `ObservableProperty<T>::Get()`/`Set()` are mutex-protected. UI widgets are expected to **poll** `Get()` every frame inside their `Draw()` call — this is sufficient and safe without any marshaling, since immediate-mode UIs redraw every frame regardless.
-- `Dispatcher` is the exception path: use it only if a handler needs to call a UI API directly (e.g. `ImGui::OpenPopup`) from a thread other than the render thread.
+- `concurrency::Dispatcher` is the exception path: use it only if a handler needs to call a UI API directly (e.g. `ImGui::OpenPopup`) from a thread other than the render thread. It belongs to the independent `concurrency` module, as does `concurrency::NotificationWorker`.
 
 ## Dependencies
 
 - `cpptoolkit::struct` (ring buffer, used internally).
-- `Threads::Threads` (for `NotificationWorker`).
+
+This module is header-only and does not depend on `concurrency`.
 
 ## Usage
 

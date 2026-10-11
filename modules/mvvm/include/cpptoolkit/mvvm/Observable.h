@@ -25,7 +25,7 @@ namespace cpptoolkit::mvvm {
  * execution parallel-safe.
  *
  * A Subscription holds a non-owning pointer to this object. The Observable
- * must outlive every active Subscription. Use NotificationWorker when
+ * must outlive every active Subscription. Use concurrency::NotificationWorker when
  * notifications need to run on its dedicated worker thread.
  *
  * @tparam T Type of values delivered to handlers.

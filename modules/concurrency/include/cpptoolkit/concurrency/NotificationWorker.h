@@ -1,5 +1,5 @@
 #pragma once
-#include <cpptoolkit/mvvm/Export.h>
+#include <cpptoolkit/concurrency/Export.h>
 
 #include <condition_variable>
 #include <functional>
@@ -12,7 +12,7 @@
  * @brief Serial background execution queue for notification-related tasks.
  */
 
-namespace cpptoolkit::mvvm {
+namespace cpptoolkit::concurrency {
 
 /**
  * @brief Executes posted tasks on one dedicated background thread in FIFO order.
@@ -22,7 +22,7 @@ namespace cpptoolkit::mvvm {
  * exiting. Task exceptions are not caught; an uncaught exception on the worker
  * thread causes std::terminate.
  */
-class CPPTOOLKIT_MVVM_EXPORT NotificationWorker {
+class CPPTOOLKIT_CONCURRENCY_EXPORT NotificationWorker {
 public:
     /**
      * @brief Returns the process-wide notification worker.
@@ -54,4 +54,4 @@ private:
     bool stop_ = false;
 };
 
-} // namespace cpptoolkit::mvvm
+} // namespace cpptoolkit::concurrency

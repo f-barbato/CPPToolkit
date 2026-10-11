@@ -96,6 +96,7 @@ cpptoolkit_add_module(
     PUBLIC_DEPS
         rlImGui
         cpptoolkit::mvvm
+        cpptoolkit::concurrency
         imgui::imgui
         implot::implot
         glfw

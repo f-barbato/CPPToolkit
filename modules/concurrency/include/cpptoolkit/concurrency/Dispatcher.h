@@ -1,5 +1,5 @@
 #pragma once
-#include <cpptoolkit/mvvm/Export.h>
+#include <cpptoolkit/concurrency/Export.h>
 
 #include <functional>
 #include <mutex>
@@ -10,7 +10,7 @@
  * @brief Queues actions for execution by a caller-selected thread.
  */
 
-namespace cpptoolkit::mvvm {
+namespace cpptoolkit::concurrency {
 
 /**
  * @brief Queues actions for execution by the thread calling ProcessPending().
@@ -21,7 +21,7 @@ namespace cpptoolkit::mvvm {
  * wait for the next call. Actions in a batch execute in post order on the
  * processing thread.
  */
-class CPPTOOLKIT_MVVM_EXPORT Dispatcher {
+class CPPTOOLKIT_CONCURRENCY_EXPORT Dispatcher {
 public:
     /**
      * @brief Returns the process-wide dispatcher instance.
@@ -47,4 +47,4 @@ private:
     std::vector<std::function<void()>> queue_;
 };
 
-} // namespace cpptoolkit::mvvm
+} // namespace cpptoolkit::concurrency

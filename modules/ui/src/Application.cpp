@@ -1,7 +1,7 @@
 #include "cpptoolkit/ui/Application.h"
 
-#include "cpptoolkit/mvvm/Dispatcher.h"
-#include "cpptoolkit/mvvm/NotificationWorker.h"
+#include "cpptoolkit/concurrency/Dispatcher.h"
+#include "cpptoolkit/concurrency/NotificationWorker.h"
 
 #include <iostream>
 #include <utility>
@@ -96,7 +96,7 @@ namespace cpptoolkit::ui {
             ~GuiGuard() { rlImGuiEnd(); }
         } guiGuard;
 
-        mvvm::Dispatcher::Main().ProcessPending();
+        concurrency::Dispatcher::Main().ProcessPending();
 
         if (this->_rootView) {
             this->_rootView->Draw();
@@ -197,11 +197,11 @@ namespace cpptoolkit::ui {
     }
 
     void Application::RunAsync(std::function<void()> work) {
-        mvvm::NotificationWorker::Instance().Post(std::move(work));
+        concurrency::NotificationWorker::Instance().Post(std::move(work));
     }
 
     void Application::Dispatch(std::function<void()> action) {
-        mvvm::Dispatcher::Main().Post(std::move(action));
+        concurrency::Dispatcher::Main().Post(std::move(action));
     }
 
 } // namespace cpptoolkit::ui

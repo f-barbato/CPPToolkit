@@ -11,7 +11,7 @@ endif()
 if(@CPPTOOLKIT_BUILD_BLE@)
     find_dependency(simpleble CONFIG)
 endif()
-if(@CPPTOOLKIT_BUILD_MVVM@)
+if(@CPPTOOLKIT_BUILD_CONCURRENCY@)
     find_dependency(Threads)
 endif()
 

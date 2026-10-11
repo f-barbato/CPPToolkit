@@ -16,10 +16,10 @@
       "description": "Data structures (ring buffer, etc.)"
     },
     "concurrency": {
-      "description": "General-purpose concurrency primitives (cooperative cancellation)"
+      "description": "General-purpose concurrency primitives (cancellation, dispatcher, worker)"
     },
     "mvvm": {
-      "description": "MVVM pattern for C++ (Observable, ObservableProperty, Command, Dispatcher)",
+      "description": "MVVM pattern for C++ (Observable, ObservableProperty, Command)",
       "dependencies": [
         { "name": "cpptoolkit", "default-features": false, "features": ["struct"] }
       ]
@@ -30,7 +30,7 @@
     "ui": {
       "description": "Retained-mode layer over Dear ImGui, data-bound via mvvm",
       "dependencies": [
-        { "name": "cpptoolkit", "default-features": false, "features": ["mvvm"] },
+        { "name": "cpptoolkit", "default-features": false, "features": ["mvvm", "concurrency"] },
         { "name": "imgui", "features": ["docking-experimental"] },
         "implot",
         "glfw3",

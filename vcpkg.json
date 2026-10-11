@@ -22,10 +22,10 @@
       "description": "Data structures (ring buffer, etc.)"
     },
     "concurrency": {
-      "description": "General-purpose concurrency primitives (cooperative cancellation)"
+      "description": "General-purpose concurrency primitives (cancellation, dispatcher, worker)"
     },
     "mvvm": {
-      "description": "MVVM pattern for C++ (Observable, ObservableProperty, Command, Dispatcher)",
+      "description": "MVVM pattern for C++ (Observable, ObservableProperty, Command)",
       "dependencies": [
         {
           "name": "cpptoolkit",
@@ -46,7 +46,8 @@
           "name": "cpptoolkit",
           "default-features": false,
           "features": [
-            "mvvm"
+            "mvvm",
+            "concurrency"
           ]
         },
         {

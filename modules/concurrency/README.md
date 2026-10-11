@@ -6,6 +6,8 @@ General-purpose concurrency primitives, independent of MVVM and UI.
 
 - `CancellationSource` owns shared cancellation state and requests cancellation with `Cancel()`.
 - `CancellationToken` is a copyable, read-only handle that checks `IsCancellationRequested()`.
+- `Dispatcher` queues actions for the thread calling `ProcessPending()`. `Main()` returns the process-wide dispatcher; each drain processes a FIFO snapshot, deferring newly posted actions to the next drain.
+- `NotificationWorker` executes posted tasks in FIFO order on one dedicated background thread. `Instance()` returns the process-wide worker; tasks serialize, and shutdown drains queued work. Uncaught task exceptions terminate the process.
 
 Cancellation is cooperative: a task must check its token and exit safely.
 It does not interrupt blocking I/O, forcibly stop a thread or remove queued
@@ -43,6 +45,6 @@ that API still serializes tasks on its single background worker.
 
 ## Dependencies
 
-Standard library only, with no MVVM/UI dependencies. The compiled module follows
+Standard library and `Threads::Threads`, with no MVVM/UI dependencies. The compiled module follows
 `BUILD_SHARED_LIBS` and provides generated `Export.h` annotations for Windows.
 Applications creating threads must link their platform's thread library as needed.

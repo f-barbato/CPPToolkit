@@ -20,7 +20,7 @@ CPPToolkit is a **modular C++ toolkit** distributed as a **single vcpkg package*
 
 Module dependency rules established so far:
 - `mvvm` depends on `struct` (e.g. uses ring buffers internally).
-- `ui` depends on `mvvm`.
+- `ui` depends on `mvvm` and `concurrency`.
 - `ui` + `net` enabled together unlock extra sub-functionality (e.g. network-status widgets) via an explicit combined feature (e.g. `ui-net-widgets`) — vcpkg does **not** auto-activate cross-feature functionality just because two features are both enabled; it must be opted into explicitly.
 
 ## Key architectural decisions
@@ -63,8 +63,8 @@ Each module exposes a target named `cpptoolkit::<name>`.
 ### Concurrency module design
 - Independent compiled module with no MVVM/UI dependencies; follows `BUILD_SHARED_LIBS` and uses generated `Export.h` annotations.
 - `CancellationSource` / `CancellationToken` provide cooperative cancellation through shared atomic state. Tasks poll the token; cancellation neither interrupts work nor removes queued tasks. Destroying the source does not cancel its tokens.
-- `Dispatcher` and `NotificationWorker` remain in `mvvm`; the new module does not change `Application::RunAsync()` serialization.
-- When enabled alongside UI, TestUI's Feedback tab shows an optional cancellation widget with Start/Cancel, progress/status and an owned thread that is cancelled/joined on teardown; see `modules/ui/examples/CancellationExample.h`.
+- `Dispatcher` and `NotificationWorker` belong to `cpptoolkit::concurrency`, with public headers under `cpptoolkit/concurrency/`. `concurrency` links `Threads::Threads`; `mvvm` is now header-only and does not depend on it. UI links both modules; `Application::RunAsync()` still serializes work.
+- TestUI's Feedback tab shows a cancellation widget with Start/Cancel, progress/status and an owned thread that is cancelled/joined on teardown; see `modules/ui/examples/CancellationExample.h`.
 
 ### MVVM module design
 Adapts C#/WPF-style MVVM to immediate-mode rendering:

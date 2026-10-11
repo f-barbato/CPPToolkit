@@ -56,7 +56,7 @@ def package(root, installed, system, arch, version, output):
         raise ValueError("Missing installed UI export header; build the complete shared package first")
     extension = {"Windows": ".dll", "Linux": ".so", "Darwin": ".dylib"}[system]
     libraries = list((prefix / ("bin" if system == "Windows" else "lib")).glob(f"*{extension}*"))
-    for module in ("concurrency", "mvvm", "net", "ui"):
+    for module in ("concurrency", "net", "ui"):
         if not any(f"cpptoolkit_{module}" in file.name for file in libraries):
             raise ValueError(f"Missing shared {module} library for {system}/{arch}")
     stage = root / "dist/Release" / system / arch

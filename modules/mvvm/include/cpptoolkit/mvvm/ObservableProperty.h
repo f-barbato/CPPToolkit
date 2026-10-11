@@ -25,7 +25,7 @@ namespace cpptoolkit::mvvm {
  *
  * The owner pointer is non-owning and is used to notify the owner after the
  * per-property callbacks; a non-null owner must remain alive while Set() may
- * use it. Polling Get() from a render thread does not require Dispatcher.
+ * use it. Polling Get() from a render thread does not require concurrency::Dispatcher.
  *
  * @tparam T Property value type, which must be equality-comparable and
  * copyable for the operations that use it.

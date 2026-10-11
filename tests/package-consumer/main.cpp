@@ -28,10 +28,10 @@ int main() {
     cancellation.Cancel();
     require(token.IsCancellationRequested());
     bool dispatched = false;
-    mvvm::Dispatcher::Main().Post([&] { dispatched = true; });
-    mvvm::Dispatcher::Main().ProcessPending();
+    concurrency::Dispatcher::Main().Post([&] { dispatched = true; });
+    concurrency::Dispatcher::Main().ProcessPending();
     require(dispatched);
-    auto& worker = mvvm::NotificationWorker::Instance();
+    auto& worker = concurrency::NotificationWorker::Instance();
     (void)worker;
     net::SerialTransport serial("test", 9600);
     net::TcpTransport tcp("localhost", 1234);
