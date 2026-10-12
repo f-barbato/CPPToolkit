@@ -956,7 +956,7 @@ TEST_F(WidgetGalleryTests, OptionalBindingsAndCallbackButtonsRemainUsable) {
     ui::Panel panel;
     panel.Add<ui::TextWidget>("Static text");
     panel.Add<ui::PlotLineWidget>("Unbound plot");
-    auto& slider = panel.Add<ui::SliderFloatWidget>("Unbound slider", 0, 1, 0.5f);
+    auto& slider = panel.Add<ui::SliderFloatWidget>("Unbound slider", 0.0f, 1.0f, 0.5f);
     Draw(panel);
     int clicks = 0;
     ui::ButtonWidget button("Callback button", [&] { ++clicks; });
@@ -1013,7 +1013,7 @@ TEST(ApplicationMergeTests, AsyncQueueAndRenderDispatchExecuteOnSeparateThreads)
         called = true;
     });
     EXPECT_FALSE(called);
-    concurrency::Dispatcher::Main().ProcessPending();
+    cpptoolkit::concurrency::Dispatcher::Main().ProcessPending();
     EXPECT_TRUE(called);
 }
 

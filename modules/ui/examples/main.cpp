@@ -42,7 +42,7 @@ protected:
         auto* vm = GetViewModel<DemoViewModel>();
         if (!vm) return;
         Add<ui::TextWidget>(vm->Status);
-        Add<ui::SliderFloatWidget>("Amplitude", vm->Amplitude, 0, 5);
+        Add<ui::SliderFloatWidget>("Amplitude", vm->Amplitude, 0.0f, 5.0f);
         Add<ui::ButtonWidget>("Reset phase", vm->ResetCommand);
         Add<ui::PlotLineWidget>("Sensor value", vm->SensorValue);
         Add<ui::TextBoxWidget>("Text input", vm->TextInput);
@@ -149,7 +149,7 @@ protected:
         auto& screen = Center();
         auto* vm = GetViewModel<DemoViewModel>();
         if (!vm) throw std::logic_error("Framebuffer demo requires DemoViewModel");
-        Right().Add<ui::SliderFloatWidget>("Amplitude", vm->Amplitude, 0, 5);
+        Right().Add<ui::SliderFloatWidget>("Amplitude", vm->Amplitude, 0.0f, 5.0f);
         Top().Add<ui::ButtonWidget>("Reset phase", vm->ResetCommand);
         auto& controls = Add<ui::Panel>("Editor layout controls");
         controls.Add<ui::TextWidget>("Layout presets");
@@ -190,7 +190,7 @@ protected:
         }
         controls.Add<ui::ButtonWidget>("Reset layout and show all panels", [this] { ResetLayout(); });
         Bottom().Add<ui::TextWidget>(vm->Status);
-        screen.Add<ui::SliderFloatWidget>("Framebuffer amplitude", vm->Amplitude, 0, 5);
+        screen.Add<ui::SliderFloatWidget>("Framebuffer amplitude", vm->Amplitude, 0.0f, 5.0f);
         auto& framebuffer = screen.Add<ui::RenderTextureWidget>("Shared ViewModel rendering", 320, 240,
             [](ui::RenderTextureWidget& widget) {
                 auto* model = widget.GetViewModel<DemoViewModel>();
