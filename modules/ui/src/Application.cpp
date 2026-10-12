@@ -3,7 +3,9 @@
 #include "cpptoolkit/concurrency/Dispatcher.h"
 #include "cpptoolkit/concurrency/NotificationWorker.h"
 
+#include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 
 namespace cpptoolkit::ui {
@@ -50,8 +52,9 @@ namespace cpptoolkit::ui {
             ::SetTargetFPS(this->_targetFPS);
             rlImGuiSetup(IsDarkTheme());
             guiReady = true;
-            _styler.Apply();
-            _stylePending = false;
+            _stylePending = true;
+            _fontPending = !_fontPath.empty();
+            ApplyPendingStyle();
             ImPlot::CreateContext();
             plotReady = true;
             this->_running = true;
@@ -85,10 +88,7 @@ namespace cpptoolkit::ui {
     }
 
     void Application::Draw() {
-        if (_stylePending) {
-            _styler.Apply();
-            _stylePending = false;
-        }
+        ApplyPendingStyle();
         BeginDrawing();
         struct DrawingGuard {
             ~DrawingGuard() { EndDrawing(); }
@@ -181,6 +181,46 @@ namespace cpptoolkit::ui {
     Application& Application::SetStyler(const Styler& styler) {
         _styler = styler;
         _stylePending = true;
+        return *this;
+    }
+
+    void Application::ApplyPendingStyle() {
+        if (!_stylePending && !_fontPending) return;
+        // Styler::Apply() overwrites the whole ImGuiStyle, including FontSizeBase,
+        // so the font size is reapplied whenever either changes.
+        if (_stylePending) _styler.Apply();
+        ImGuiIO& io = ImGui::GetIO();
+        if (_fontPending && _font) {
+            io.Fonts->RemoveFont(_font);
+            _font = nullptr;
+            io.FontDefault = nullptr;
+        }
+        if (_fontPending && !_fontPath.empty()) {
+            _font = io.Fonts->AddFontFromFileTTF(_fontPath.c_str(), _fontSize);
+            if (!_font) {
+                _fontPending = _stylePending = false;
+                throw std::runtime_error("Could not load font: " + _fontPath);
+            }
+            io.FontDefault = _font;
+        }
+        if (_font) ImGui::GetStyle().FontSizeBase = _fontSize;
+        _stylePending = _fontPending = false;
+    }
+
+    Application& Application::SetFont(const std::string& path, float size) {
+        if (!(size > 0.0f)) throw std::invalid_argument("Font size must be positive");
+        if (!std::ifstream(path, std::ios::binary))
+            throw std::invalid_argument("Cannot open font file: " + path);
+        _fontPath = path;
+        _fontSize = size;
+        _fontPending = true;
+        return *this;
+    }
+
+    Application& Application::ResetFont() {
+        _fontPath.clear();
+        _fontSize = 0.0f;
+        _fontPending = _stylePending = true;
         return *this;
     }
 

@@ -90,6 +90,28 @@ public:
      *  @return Owned style, which may be pending application next frame.
      */
     [[nodiscard]] const Styler& GetStyler() const { return _styler; }
+    /** @brief Use a TrueType/OpenType font file as the application default font.
+     *  @param path Font file path; it must be readable.
+     *  @param size Font size in pixels; must be positive.
+     *  @return This application.
+     *  @throws std::invalid_argument If the size is not positive or the file cannot be opened.
+     *  @note Render-thread-only. The font is loaded at the next frame boundary, after any
+     *        pending style, and persists across SetStyler() calls. A load failure at that
+     *        point is reported through the error handler by Run().
+     */
+    Application& SetFont(const std::string& path, float size);
+    /** @brief Restore the built-in ImGui font.
+     *  @return This application.
+     */
+    Application& ResetFont();
+    /** @brief Query the configured font file.
+     *  @return Font path, or an empty string for the built-in font.
+     */
+    [[nodiscard]] const std::string& GetFontPath() const { return _fontPath; }
+    /** @brief Query the configured font size.
+     *  @return Size in pixels, or zero for the built-in font.
+     */
+    [[nodiscard]] float GetFontSize() const { return _fontSize; }
     /** @brief Set the frame clear color.
      *  @param backgroundColor raylib color.
      *  @return This application.
@@ -199,6 +221,11 @@ private:
     int _targetFPS = 60;
     Styler _styler{Theme::Light};
     bool _stylePending = false;
+    std::string _fontPath;
+    float _fontSize = 0.0f;
+    bool _fontPending = false;
+    ImFont* _font = nullptr;
+    void ApplyPendingStyle();
     Color _backgroundColor = RAYWHITE;
     ErrorHandler _onError;
     std::shared_ptr<Widget> _rootView;

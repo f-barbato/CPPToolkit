@@ -8,6 +8,7 @@
 #include "cpptoolkit/ui/widgets/PlotLineWidget.h"
 #include "cpptoolkit/ui/widgets/SliderFloatWidget.h"
 #include "cpptoolkit/ui/widgets/TextBoxWidget.h"
+#include "cpptoolkit/ui/widgets/FilePathWidget.h"
 #include "cpptoolkit/ui/widgets/TextWidget.h"
 #include "cpptoolkit/ui/widgets/FeedbackWidgets.h"
 #include "cpptoolkit/ui/widgets/DataWidgets.h"

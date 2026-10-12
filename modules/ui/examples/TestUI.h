@@ -24,6 +24,9 @@ struct TestUIState : cpptoolkit::mvvm::ObservableObject {
     Property<std::string> Multiline{this, "Multiline", "Editable multiline text\nSecond line"};
     Property<std::string> Password{this, "Password", ""};
     Property<std::string> Search{this, "Search", ""};
+    Property<std::string> OpenPath{this, "OpenPath", ""};
+    Property<std::string> SavePath{this, "SavePath", ""};
+    Property<std::string> FolderPath{this, "FolderPath", ""};
     Property<std::array<float, 4>> Color{this, "Color", {0.2f, 0.6f, 1.0f, 1.0f}};
     Property<cpptoolkit::ui::Date> Date{this, "Date",
         {std::chrono::year{2026}, std::chrono::October, std::chrono::day{10}}};
@@ -106,6 +109,14 @@ inline void BuildInputExamples(cpptoolkit::ui::Panel& panel, TestUIState& vm) {
     panel.Add<ui::SearchBoxWidget>("Search", vm.Search, [&vm](const std::string& search) {
         vm.LastEvent.Set("Search: " + search);
     });
+    panel.Add<ui::FilePathWidget>("Open file", vm.OpenPath, ui::FilePathMode::Open,
+        std::vector<ui::FileFilter>{{"Text", "txt,md"}, {"Images", "png,jpg"}},
+        [&vm](const std::string& path) { vm.LastEvent.Set("Open path: " + path); });
+    panel.Add<ui::FilePathWidget>("Save file", vm.SavePath, ui::FilePathMode::Save,
+        std::vector<ui::FileFilter>{{"Text", "txt"}},
+        [&vm](const std::string& path) { vm.LastEvent.Set("Save path: " + path); });
+    panel.Add<ui::FilePathWidget>("Folder", vm.FolderPath, ui::FilePathMode::Folder, std::vector<ui::FileFilter>{},
+        [&vm](const std::string& path) { vm.LastEvent.Set("Folder: " + path); });
     panel.Add<ui::DatePickerWidget>("Date", vm.Date, [&vm](ui::Date) {
         vm.LastEvent.Set("Date changed");
     });

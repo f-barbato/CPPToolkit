@@ -46,6 +46,7 @@
           "name": "cpptoolkit",
           "default-features": false,
           "features": [
+            "platform",
             "mvvm",
             "concurrency"
           ]
@@ -57,7 +58,16 @@
           ]
         },
         "implot",
-        "glfw3",
+        {
+          "name": "glfw3",
+          "features": [
+            {
+              "name": "wayland",
+              "platform": "linux"
+            }
+          ]
+        },
+        "nativefiledialog-extended",
         {
           "name": "raylib",
           "version>=": "5.5"

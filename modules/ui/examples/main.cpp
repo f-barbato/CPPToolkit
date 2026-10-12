@@ -20,6 +20,8 @@ public:
     mvvm::ObservableProperty<float> Amplitude{this, "Amplitude", 1};
     mvvm::ObservableProperty<std::string> Status{this, "Status", "Running"};
     mvvm::ObservableProperty<std::string> TextInput{this, "TextInput", ""};
+    mvvm::ObservableProperty<std::string> FontPath{this, "FontPath", "C:\\Windows\\Fonts\\segoeui.ttf"};
+    mvvm::ObservableProperty<float> FontSize{this, "FontSize", 16.0f};
     TestUIState Gallery;
     mvvm::Command ResetCommand{[this] {
         phase_ = 0;
@@ -164,6 +166,23 @@ protected:
                 GetApplication()->SetStyler(styler);
             });
         }
+
+        controls.Add<ui::TextWidget>("Application font");
+        controls.Add<ui::FilePathWidget>("Font file", vm->FontPath, ui::FilePathMode::Open,
+            std::vector<ui::FileFilter>{{"Fonts", "ttf,otf"}});
+        controls.Add<ui::DragFloatWidget>("Font size", vm->FontSize, 0.5f, 8.0f, 48.0f);
+        controls.Add<ui::ButtonWidget>("Apply font", [this, vm] {
+            try {
+                GetApplication()->SetFont(vm->FontPath.Get(), vm->FontSize.Get());
+                vm->Status.Set("Font applied");
+            } catch (const std::exception& e) {
+                vm->Status.Set(e.what());
+            }
+        });
+        controls.Add<ui::ButtonWidget>("Default font", [this, vm] {
+            GetApplication()->ResetFont();
+            vm->Status.Set("Default font restored");
+        });
 
         controls.Add<ui::ButtonWidget>("Full-height left", [this] {
             SetLayout(ui::EditorLayout::LeftFullHeight);

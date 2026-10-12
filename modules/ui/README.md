@@ -169,10 +169,17 @@ The legacy `SetDarkTheme()` selects Dark/Light while preserving metrics; the
 application still defaults to Light. TestUI's editor layout controls include
 buttons for switching all three palettes at runtime.
 
+`Application::SetFont(path, size)` makes a TrueType/OpenType file the default
+font and `ResetFont()` restores the built-in one. The file must be readable
+(`std::invalid_argument` otherwise) and the size positive. Like styles, the
+font is loaded at the next frame boundary, survives `SetStyler()` and is
+render-thread-only; a later load failure is reported through the error handler.
+
 ### Concrete widgets (`cpptoolkit/ui/widgets/widgets.h`)
 
 - `TextWidget` — read-only text, polls a bound `ObservableProperty<std::string>`.
 - `TextBoxWidget` — single-line editable text with two-way binding to `ObservableProperty<std::string>` and an optional `OnTextChanged` callback.
+- `FilePathWidget` — path text box plus a "Browse..." button opening a native Open/Save/Folder dialog (`FilePathMode`, optional `FileFilter`s). A cancelled dialog leaves the property unchanged; failures are exposed through `LastError()`.
 - `SliderFloatWidget` — two-way bound `ImGui::SliderFloat`, writes back via `Set()` on user interaction.
 - `ButtonWidget` — bound to a `mvvm::Command`; disabled when `CanExecute()` is false.
 - `PlotLineWidget` — real-time line plot (ImPlot) sampling a bound float property every frame into a `cpptoolkit::structs::RingBuffer`.
@@ -262,10 +269,26 @@ Enabling `ui` and `net` separately does not activate this combined feature.
 
 ## Dependencies
 
+- `cpptoolkit::platform` (private; OS detection macros)
 - `cpptoolkit::mvvm`
 - `imgui` (vcpkg feature `docking-experimental`)
 - `implot`
+- `nativefiledialog-extended` (private; native file dialogs, Zlib license)
 
+`FileDialog` (`cpptoolkit/ui/FileDialog.h`) exposes `OpenFile`, `OpenFiles`,
+`SaveFile` and `PickFolder` returning UTF-8 paths. These are modal and block
+the calling thread; macOS requires the main thread. The `*Async` variants
+(`OpenFileAsync`, ...) run the dialog on a worker thread and return a
+`PendingFileDialog` to poll with `IsReady()` and `Take()`; `FilePathWidget` uses
+them so rendering never stalls. On macOS async calls complete synchronously
+(Cocoa needs the main thread). Call them from the render thread, which supplies
+the parent window. Cancelling yields `nullopt`/empty, failures throw
+`std::runtime_error` (async: `FileDialogResult::error`).
+On Windows and macOS the dialog is parented to the application window; on Linux
+this works under X11 and Wayland when the X11/Wayland development headers are
+found at configure time (vcpkg builds GLFW with Wayland support on Linux),
+otherwise dialogs open unparented. On Linux the
+XDG desktop portal (D-Bus) is used, so a portal implementation must be running.
 The current `Application` API exposes raylib and rlImGui, so the UI module also
 requires raylib (at least 5.5), GLFW and the pinned rlImGui bridge. These are
 installed/exported with the package as required; consumers need not fetch a

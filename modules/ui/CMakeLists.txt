@@ -4,6 +4,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(implot CONFIG REQUIRED)
 find_package(raylib CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(nfd CONFIG REQUIRED)
 if(BUILD_SHARED_LIBS)
     foreach(dependency imgui::imgui implot::implot)
         get_target_property(dependency_type ${dependency} TYPE)
@@ -87,6 +88,8 @@ set(UI_SOURCES
     src/widgets/RenderTextureWidget.cpp
     src/widgets/EditorLayoutWidget.cpp
     src/widgets/TextWidget.cpp
+    src/widgets/FilePathWidget.cpp
+    src/FileDialog.cpp
     src/Application.cpp
     src/Styler.cpp
 )
@@ -101,7 +104,25 @@ cpptoolkit_add_module(
         imgui::imgui
         implot::implot
         glfw
+    PRIVATE_DEPS
+        nfd::nfd
+        cpptoolkit::platform
 )
+
+# Native parent-window support for file dialogs on Linux needs the X11/Wayland
+# headers pulled in by glfw3native.h; without them dialogs open unparented.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_path(CPPTOOLKIT_X11_INCLUDE_DIR X11/Xlib.h)
+    find_path(CPPTOOLKIT_WAYLAND_INCLUDE_DIR wayland-client.h)
+    if(CPPTOOLKIT_X11_INCLUDE_DIR)
+        target_include_directories(cpptoolkit_ui PRIVATE "${CPPTOOLKIT_X11_INCLUDE_DIR}")
+        target_compile_definitions(cpptoolkit_ui PRIVATE CPPTOOLKIT_UI_NATIVE_X11)
+    endif()
+    if(CPPTOOLKIT_WAYLAND_INCLUDE_DIR)
+        target_include_directories(cpptoolkit_ui PRIVATE "${CPPTOOLKIT_WAYLAND_INCLUDE_DIR}")
+        target_compile_definitions(cpptoolkit_ui PRIVATE CPPTOOLKIT_UI_NATIVE_WAYLAND)
+    endif()
+endif()
 
 # Optional sub-functionality: widgets that visualize cpptoolkit::net state.
 # Only the explicit combined feature activates these declarations.

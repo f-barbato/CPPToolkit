@@ -59,3 +59,16 @@ TEST(StylerTests, ApplicationOwnsSnapshotAndLegacyThemePreservesMetrics) {
     application.SetDarkTheme(false);
     EXPECT_EQ(application.GetStyler().GetTheme(), Theme::Light);
 }
+
+TEST(StylerTests, ApplicationValidatesAndStoresFontConfiguration) {
+    Application application;
+    EXPECT_TRUE(application.GetFontPath().empty());
+    EXPECT_THROW(application.SetFont("missing-font.ttf", 16), std::invalid_argument);
+    EXPECT_THROW(application.SetFont(__FILE__, 0), std::invalid_argument);
+    EXPECT_EQ(&application.SetFont(__FILE__, 18), &application);
+    EXPECT_EQ(application.GetFontPath(), __FILE__);
+    EXPECT_FLOAT_EQ(application.GetFontSize(), 18);
+    EXPECT_EQ(&application.ResetFont(), &application);
+    EXPECT_TRUE(application.GetFontPath().empty());
+    EXPECT_FLOAT_EQ(application.GetFontSize(), 0);
+}

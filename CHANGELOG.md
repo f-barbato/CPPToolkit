@@ -7,6 +7,9 @@
 - TestUI Feedback example demonstrating background task progress, cancellation, restart and safe worker shutdown.
 - Regression tests for cancellation, dispatcher snapshot ordering and FIFO background execution.
 - Security policy documenting supported versions and vulnerability reporting.
+- `Application::SetFont()`, `ResetFont()` and getters to use a custom default font, applied at the next frame boundary.
+- `FileDialog` (native open/save/folder dialogs via nativefiledialog-extended, parented to the window on Windows/macOS/X11/Wayland) and `FilePathWidget` in the `ui` module, with non-blocking `*Async` variants (worker thread; synchronous on macOS); the TestUI font control uses it.
+- `CPPTOOLKIT_OS_WINDOWS/MACOS/LINUX/UNKNOWN` preprocessor macros in `cpptoolkit/platform/Platform.h`; `ui` now depends on `platform`.
 
 ### Changed (breaking changes)
 
