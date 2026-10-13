@@ -10,7 +10,7 @@ TextBoxWidget::TextBoxWidget(std::string label, mvvm::ObservableProperty<std::st
     : OnTextChanged(std::move(onTextChanged)), label_(std::move(label)), bound_(bound) {}
 
 void TextBoxWidget::Draw() {
-    detail::DrawText(label_, bound_, buffer_, readOnly, detail::TextMode::SingleLine, OnTextChanged);
+    detail::DrawText(label_, bound_, buffer_, readOnly, detail::TextMode::SingleLine, OnTextChanged, History);
 }
 
 } // namespace cpptoolkit::ui

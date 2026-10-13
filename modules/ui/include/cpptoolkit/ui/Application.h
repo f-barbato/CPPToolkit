@@ -6,6 +6,7 @@
 
 #include "cpptoolkit/ui/Widget.h"
 #include "cpptoolkit/ui/Styler.h"
+#include "cpptoolkit/ui/Shortcuts.h"
 #include "cpptoolkit/ui/widgets/widgets.h"
 #include <functional>
 #include <memory>
@@ -90,6 +91,10 @@ public:
      *  @return Owned style, which may be pending application next frame.
      */
     [[nodiscard]] const Styler& GetStyler() const { return _styler; }
+    /** @brief Application-wide keyboard shortcuts, processed once per frame before widgets draw.
+     *  @return Mutable registry; render-thread-only.
+     */
+    [[nodiscard]] ShortcutManager& Shortcuts() { return _shortcuts; }
     /** @brief Use a TrueType/OpenType font file as the application default font.
      *  @param path Font file path; it must be readable.
      *  @param size Font size in pixels; must be positive.
@@ -220,6 +225,7 @@ private:
     Image _icon{};
     int _targetFPS = 60;
     Styler _styler{Theme::Light};
+    ShortcutManager _shortcuts;
     bool _stylePending = false;
     std::string _fontPath;
     float _fontSize = 0.0f;

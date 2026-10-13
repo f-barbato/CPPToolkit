@@ -8,6 +8,7 @@ MVVM pattern for C++, adapted to immediate-mode UI rendering (see the `ui` modul
 - `ObservableObject` — ViewModel base class; raises a generic "property changed by name" notification, mirroring `CommunityToolkit.Mvvm`'s `ObservableObject`.
 - `ObservableProperty<T>` — mutex-protected observable property, analogous to `[ObservableProperty]`. Notifies both its own subscribers and its owning `ObservableObject`.
 - `Command` — action + optional `CanExecute` guard, analogous to `ICommand`.
+- `UndoStack` — undo/redo history (not thread-safe; use from the render thread). `Execute()` applies and records an action, `Record()` records one already applied; groups (`BeginGroup`/`UndoStack::Group`) form a single step, `BreakMerge()` ends a continuous edit, the depth is limited, and bindable `CanUndo`/`CanRedo`/`UndoText`/`RedoText` plus `UndoCommand`/`RedoCommand` drive menus. `SetUndoable()`/`RecordChange()` record `ObservableProperty` changes, merging consecutive ones (slider drags). Changes made by subscribers while undoing are not recorded. Widgets expose a `History` pointer to record user edits.
 
 ## Thread-safety model
 

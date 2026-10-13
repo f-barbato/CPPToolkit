@@ -133,7 +133,7 @@ Use owned/weak captures for background work, never dangling widget/model
 pointers. Teardown covers exceptions during construction as well as rendering.
 
 TestUI's **Feedback** tab also includes
-a cancellation example (`examples/CancellationExample.h`). **Start task**
+a cancellation example (`examples/CancellationExample.h/.cpp`). **Start task**
 launches a dedicated background thread and updates bound progress/status
 properties. **Cancel task** requests cancellation through a `CancellationSource`;
 the worker captures its token and checks it after each bounded work chunk.
@@ -167,7 +167,26 @@ them with `Application::Dispatch()`. `Styler::Apply()` is available for standalo
 ImGui usage and requires a current context and no active widget/style scopes.
 The legacy `SetDarkTheme()` selects Dark/Light while preserving metrics; the
 application still defaults to Light. TestUI's editor layout controls include
-buttons for switching all three palettes at runtime.
+buttons for switching all three themes, three palette presets and one color picker per palette color.
+
+### Semantic palette
+
+`ui::Palette` defines `Primary`, `Secondary`, `Background`, `Surface`, `Text`,
+`TextDisabled` and `Border`. `Styler::SetPalette()` derives every ImGui color
+(buttons, inputs, tabs, headers, sliders, plots, tables, docking) from them, so
+all widgets follow it, and preserves metrics. Single colors can still be
+overridden through `GetStyle()` afterwards. Start from `Palette::Dark()` or
+`Palette::Light()`.
+
+```cpp
+ui::Palette palette = ui::Palette::Dark();
+palette.Primary = {0.1f, 0.7f, 0.5f, 1};
+palette.Secondary = {0.9f, 0.5f, 0.1f, 1};
+auto styler = app.GetStyler();
+styler.SetPalette(palette);
+app.SetStyler(styler);
+```
+
 
 `Application::SetFont(path, size)` makes a TrueType/OpenType file the default
 font and `ResetFont()` restores the built-in one. The file must be readable
@@ -256,6 +275,10 @@ property still stores ordinary plaintext, not a protected credential container.
 Progress values are visually clamped to [0,1], and invalid nonfinite progress
 or splitter values display a diagnostic. Layout dimensions and ranges are
 documented and validated where required.
+
+## Keyboard shortcuts
+
+`Application::Shortcuts()` returns a `ShortcutManager` processed once per frame before the widget tree draws. Register a `ShortcutInfo` (unique id, description, `ImGuiKeyChord` such as `ImGuiMod_Ctrl | ImGuiKey_S`, action, optional `CanExecute`, `Repeat`, `AllowWhileTyping`) or bind a borrowed `mvvm::Command` with `Register(id, chord, command)`. Chords are unique (conflicts throw); `Rebind()`, `Unregister()`, `Find()`, `FindByChord()` and `Text()` (e.g. "Ctrl+S", for menus) support user remapping and help screens. Global routing lets focused items keep priority (text-field Ctrl+Z); chords without Ctrl/Alt/Super are ignored while typing unless `AllowWhileTyping`. Set `Enabled = false` while capturing a new chord. The demo registers Ctrl+Z / Ctrl+Y for undo/redo this way.
 
 ## Concept
 
@@ -366,7 +389,7 @@ normalizing or notifying. Callbacks follow the binding rules above.
 
 ### Application
 
-`examples/main.cpp` and `examples/TestUI.h` (built with
+`examples/main.cpp` and `examples/TestUI.h/.cpp` (built with
 `CPPTOOLKIT_BUILD_EXAMPLES=ON`) provide TestUI, the `cpptoolkit_ui_demo`
 executable. In addition to the original sensor plot, slider and text boxes,
 it contains Input, Feedback, Data, Navigation, Layout and Overlay tabs covering

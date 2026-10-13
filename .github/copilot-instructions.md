@@ -64,13 +64,14 @@ Each module exposes a target named `cpptoolkit::<name>`.
 - Independent compiled module with no MVVM/UI dependencies; follows `BUILD_SHARED_LIBS` and uses generated `Export.h` annotations.
 - `CancellationSource` / `CancellationToken` provide cooperative cancellation through shared atomic state. Tasks poll the token; cancellation neither interrupts work nor removes queued tasks. Destroying the source does not cancel its tokens.
 - `Dispatcher` and `NotificationWorker` belong to `cpptoolkit::concurrency`, with public headers under `cpptoolkit/concurrency/`. `concurrency` links `Threads::Threads`; `mvvm` is now header-only and does not depend on it. UI links both modules; `Application::RunAsync()` still serializes work.
-- TestUI's Feedback tab shows a cancellation widget with Start/Cancel, progress/status and an owned thread that is cancelled/joined on teardown; see `modules/ui/examples/CancellationExample.h`.
+- TestUI's Feedback tab shows a cancellation widget with Start/Cancel, progress/status and an owned thread that is cancelled/joined on teardown; see `modules/ui/examples/CancellationExample.h/.cpp`.
 
 ### MVVM module design
 Adapts C#/WPF-style MVVM to immediate-mode rendering:
 - `Observable<T>`: multi-subscriber observable with RAII `Subscription` (auto-unsubscribe on destruction).
 - `ObservableObject` / `ObservableProperty<T>`: mirrors `CommunityToolkit.Mvvm`'s `ObservableObject` + `[ObservableProperty]` — notifies both per-property subscribers and a generic "property changed by name" subscriber on the owning object.
 - `Command`: wraps an action + optional `CanExecute` predicate.
+- `UndoStack` (header-only, render-thread use): undo/redo with groups, merged continuous edits (`PropertyChangeAction`, `SetUndoable`, `RecordChange`), bindable `CanUndo`/`CanRedo`; UI input widgets record user edits via a `History` pointer.
 - Thread-safety model (important, decided after iteration):
   - `ObservableProperty<T>::Get()`/`Set()` are mutex-protected.
   - Widgets **poll** the current value every frame inside `Draw()` — this is sufficient and thread-safe without any marshaling, since immediate-mode UIs redraw every frame anyway.
@@ -79,6 +80,7 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 
 ### UI module design
 - `Styler` owns global `ImGuiStyle` settings with Dark/Light/Classic palettes and customizable colors/metrics. `Application::SetStyler()` copies configuration and applies runtime updates at the next frame boundary; legacy `SetDarkTheme()` preserves metrics. Style operations are render-thread-only.
+- `ShortcutManager` (`Application::Shortcuts()`): generic key-chord registry processed per frame with global ImGui routing; chords are unique and bindable to actions or `Command`s; the demo uses it for Ctrl+Z/Ctrl+Y.
 - Goal: make ImGui (immediate-mode) feel "retained" — a persistent widget tree built **once**, bound to `mvvm` properties, redrawn each frame.
 - `Widget` base class with virtual `Draw()`; `Panel` is a container (`Add<T>(...)`, `Remove(...)`) holding `unique_ptr<Widget>` children.
 - `Widget::OnBuild()` is the preferred construction hook; virtual `Build()` remains for compatibility with existing specialized containers. `PreBuild()` receives contexts after `Add()`. Ambient borrowed ViewModel/Application contexts cascade to descendants; tabs and splitter panes inherit them during build. `Panel()` stays inline; `Panel(title)` opens a standalone window; `DockedPanel` hosts the viewport dockspace.
@@ -88,7 +90,7 @@ Adapts C#/WPF-style MVVM to immediate-mode rendering:
 - `EditorLayoutWidget` provides five owned dockable panels (left/right/top/bottom/center), with full-width top/bottom or full-height left/right/both-sidebar presets. `SetLayout()` reapplies changed presets without reopening hidden panels; `SetPanelVisible()` controls window visibility independently of rendering; `ResetLayout()` restores the selected preset and reopens all panels. Saved docking settings override constructor presets. One visible viewport workspace is supported at a time; identifiers and panel ID suffixes must stay stable.
 - Concrete widgets shipped in `cpptoolkit/ui/widgets/`: `TextWidget`, `TextBoxWidget` (two-way string binding, optional render-thread `OnTextChanged` callback for user edits), `SliderFloatWidget`, `ButtonWidget`, `PlotLineWidget` (ImPlot, backed by a `cpptoolkit::structs::RingBuffer`). `FileDialog`/`FilePathWidget` wrap native OS file dialogs (nativefiledialog-extended, a private `ui` dependency); dialogs block the render thread unless the `*Async` variants (worker thread, synchronous on macOS) are used; `FilePathWidget` uses them.
 - Generic input, selection, feedback, data, navigation, layout and overlay controls are grouped into `InputWidgets.h`, `FeedbackWidgets.h`, `DataWidgets.h`, `NavigationWidgets.h`, `LayoutWidgets.h` and `OverlayWidgets.h`; see the UI README for the full catalog. They retain `ObservableProperty`/`Command` bindings and optional render-thread user-event callbacks after property commit. Programmatic property changes do not emit user-edit callbacks. Table sorting is explicitly requested from the ViewModel.
-- `examples/TestUI.h` builds a six-tab gallery inside `cpptoolkit_ui_demo` (TestUI), covering all generic controls. `modules/ui/tests/` contains headless ImGui binding and gallery tests.
+- `examples/TestUI.h/.cpp` build a six-tab gallery inside `cpptoolkit_ui_demo` (TestUI), covering all generic controls. `modules/ui/tests/` contains headless ImGui binding and gallery tests.
 - `DateTimeWidgets.h` provides bound/local date, time and combined pickers: Gregorian `std::chrono::year_month_day` (years 1-9999), seconds since midnight and a civil `DateTime` pair. No time-zone conversion; user edits commit before callbacks. See the UI README for ranges and interaction semantics.
 - Current graphics backend: **raylib >= 5.5** + pinned **rlImGui** + **ImPlot**. `Application` exposes the backend publicly, so the UI module builds/installs the bridge and declares raylib/GLFW as dependencies. The vcpkg port retrieves the pinned bridge with a verified checksum before CMake; standalone builds use FetchContent. The bridge follows static/shared linkage and has independent exports rather than reusing raylib's macros.
 - `modules/ui/examples/main.cpp` is a working raylib+ImGui+ImPlot demo app (built with `CPPTOOLKIT_BUILD_EXAMPLES=ON`), wiring a `DemoViewModel` to a `Panel` of the widgets above.

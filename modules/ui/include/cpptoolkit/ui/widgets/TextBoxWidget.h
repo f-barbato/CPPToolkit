@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <cpptoolkit/mvvm/ObservableProperty.h>
+#include <cpptoolkit/mvvm/UndoStack.h>
 
 #include "cpptoolkit/ui/Widget.h"
 
@@ -40,6 +41,8 @@ public:
     TextChangedHandler OnTextChanged;
     /** @brief Disable editing while continuing to poll the bound value. */
     bool readOnly = false;
+    /** @brief Optional borrowed history; typing is merged until the field loses focus. */
+    mvvm::UndoStack* History = nullptr;
 private:
     std::string label_;
     mvvm::ObservableProperty<std::string>& bound_;

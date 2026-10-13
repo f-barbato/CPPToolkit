@@ -7,6 +7,7 @@
 #include <imgui.h>
 
 #include <cpptoolkit/mvvm/ObservableProperty.h>
+#include <cpptoolkit/mvvm/UndoStack.h>
 
 namespace cpptoolkit::ui::detail {
 
@@ -23,7 +24,8 @@ enum class TextMode { SingleLine, Multiline, Password, Search };
 
 inline void DrawText(const std::string& label, mvvm::ObservableProperty<std::string>& bound,
                      std::vector<char>& buffer, bool readOnly, TextMode mode,
-                     const std::function<void(const std::string&)>& handler) {
+                     const std::function<void(const std::string&)>& handler,
+                     mvvm::UndoStack* history = nullptr) {
     const auto previous = bound.Get();
     buffer.assign(previous.begin(), previous.end());
     buffer.push_back('\0');
@@ -48,13 +50,16 @@ inline void DrawText(const std::string& label, mvvm::ObservableProperty<std::str
                                           flags, ResizeTextBuffer, &buffer);
         break;
     }
+    const bool released = history && ImGui::IsItemDeactivated();
     if (changed) {
         const std::string edited(buffer.data());
         if (edited != previous) {
             bound.Set(edited);
+            if (history) mvvm::RecordChange(*history, bound, previous, edited, label, true);
             if (handler) handler(edited);
         }
     }
+    if (released) history->BreakMerge();
 }
 
 } // namespace cpptoolkit::ui::detail

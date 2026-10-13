@@ -15,6 +15,9 @@
 #include <cpptoolkit/concurrency/Dispatcher.h>
 
 #include "../examples/TestUI.h"
+#if defined(CPPTOOLKIT_TESTUI_HAS_CONCURRENCY)
+#include "../examples/CancellationExample.h"
+#endif
 
 namespace {
 
@@ -687,6 +690,34 @@ TEST_F(WidgetGalleryTests, TabSelectionFromViewModelDoesNotCallHandler) {
     EXPECT_GT(second.Draws, 0);
     EXPECT_EQ(selected.Get(), 1);
     EXPECT_EQ(calls, 0);
+}
+
+TEST_F(WidgetGalleryTests, TabBarFlagsAreConfigurableAndStillDraw) {
+    mvvm::ObservableProperty<int> selected{nullptr, "Selected", 0};
+    ui::TabBarWidget tabs("Tabs", selected);
+    auto& first = tabs.AddTab("First").Add<CountingWidget>();
+    tabs.AddTab("Second");
+    EXPECT_EQ(tabs.GetTabBarFlags(), ImGuiTabBarFlags_None);
+    const ImGuiTabBarFlags flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll |
+                                   ImGuiTabBarFlags_TabListPopupButton;
+    tabs.SetTabBarFlags(flags);
+    EXPECT_EQ(tabs.GetTabBarFlags(), flags);
+    tabs.Build();
+    Draw(tabs);
+    Draw(tabs);
+    EXPECT_GT(first.Draws, 0);
+}
+
+TEST_F(WidgetGalleryTests, PanelCloseButtonCanBeDisabled) {
+    ui::Panel panel("Closable panel");
+    EXPECT_TRUE(panel.IsClosable());
+    for (int i = 0; i < 2; ++i) Draw(panel);
+    EXPECT_TRUE(ImGui::FindWindowByName("Closable panel")->HasCloseButton);
+    panel.SetClosable(false);
+    EXPECT_FALSE(panel.IsClosable());
+    for (int i = 0; i < 2; ++i) Draw(panel);
+    EXPECT_FALSE(ImGui::FindWindowByName("Closable panel")->HasCloseButton);
+    EXPECT_TRUE(panel.IsOpen());
 }
 
 TEST_F(WidgetGalleryTests, PopupProgrammaticOpenCloseAndUserDismissal) {

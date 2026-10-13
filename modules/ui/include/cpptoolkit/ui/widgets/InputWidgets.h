@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <cpptoolkit/mvvm/ObservableProperty.h>
+#include <cpptoolkit/mvvm/UndoStack.h>
 #include <cpptoolkit/ui/Widget.h>
 
 namespace cpptoolkit::ui {
@@ -40,6 +41,8 @@ public:
     void Draw() override;
     /** @brief Assignable user-change callback; programmatic Set() is silent. */
     CheckedChangedHandler OnCheckedChanged;
+    /** @brief Optional borrowed history receiving user toggles. */
+    mvvm::UndoStack* History = nullptr;
 private:
     std::string label_;
     mvvm::ObservableProperty<bool>& bound_;
@@ -245,6 +248,8 @@ public:
     void Draw() override;
     /** @brief Assignable user-value callback; programmatic Set() is silent. */
     ValueChangedHandler OnValueChanged;
+    /** @brief Optional borrowed history; a drag is recorded as a single merged step. */
+    mvvm::UndoStack* History = nullptr;
 private:
     std::string label_;
     mvvm::ObservableProperty<float>& bound_;

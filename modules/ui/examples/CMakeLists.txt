@@ -1,14 +1,18 @@
-
-
 find_package(raylib CONFIG REQUIRED)
 
-
-
-add_executable(cpptoolkit_ui_demo main.cpp)
+add_executable(cpptoolkit_ui_demo
+    main.cpp
+    DemoPanels.cpp
+    ControlsPanel.cpp
+    DemoViewModel.cpp
+    SerialConsole.cpp
+    TestUI.cpp
+    TestUIState.cpp)
 target_link_libraries(cpptoolkit_ui_demo PRIVATE cpptoolkit::ui rlImGui)
 target_compile_features(cpptoolkit_ui_demo PRIVATE cxx_std_17)
 
 if(TARGET cpptoolkit::concurrency)
+    target_sources(cpptoolkit_ui_demo PRIVATE CancellationExample.cpp)
     target_link_libraries(cpptoolkit_ui_demo PRIVATE cpptoolkit::concurrency)
     target_compile_definitions(cpptoolkit_ui_demo PRIVATE CPPTOOLKIT_TESTUI_HAS_CONCURRENCY=1)
 endif()

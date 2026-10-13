@@ -28,6 +28,23 @@ TEST(StylerTests, PalettesMatchImGuiAndPreserveCustomizedMetrics) {
     }
 }
 
+TEST(StylerTests, PaletteDrivesWidgetColorsAndPreservesMetrics) {
+    Styler styler;
+    styler.GetStyle().FrameRounding = 7;
+    Palette palette = Palette::Light();
+    palette.Primary = ImVec4(1, 0, 0, 1);
+    palette.Background = ImVec4(0.2f, 0.3f, 0.4f, 1);
+    EXPECT_EQ(&styler.SetPalette(palette), &styler);
+    const auto& colors = styler.GetStyle().Colors;
+    EXPECT_FLOAT_EQ(colors[ImGuiCol_WindowBg].z, 0.4f);
+    EXPECT_FLOAT_EQ(colors[ImGuiCol_ButtonHovered].x, 1.0f);
+    EXPECT_FLOAT_EQ(colors[ImGuiCol_CheckMark].y, 0.0f);
+    EXPECT_FLOAT_EQ(colors[ImGuiCol_Text].x, palette.Text.x);
+    EXPECT_FLOAT_EQ(colors[ImGuiCol_ChildBg].w, 0.0f);
+    EXPECT_FLOAT_EQ(styler.GetStyle().FrameRounding, 7);
+    EXPECT_FLOAT_EQ(styler.GetPalette().Primary.x, 1.0f);
+}
+
 TEST(StylerTests, ApplyRequiresContextAndCopiesAllCustomizations) {
     Styler styler(Theme::Classic);
     styler.GetStyle().WindowRounding = 9;

@@ -16,11 +16,16 @@ namespace cpptoolkit::ui{
     void SliderFloatWidget::Draw() {
         float value = bound_ ? bound_->Get() : value_;
         const float previous = value;
-        if (ImGui::SliderFloat(label_.c_str(), &value, min_, max_) && value != previous) {
-            if (bound_) bound_->Set(value);
-            else value_ = value;
+        const bool edited = ImGui::SliderFloat(label_.c_str(), &value, min_, max_);
+        const bool released = History && ImGui::IsItemDeactivated();
+        if (edited && value != previous) {
+            if (bound_) {
+                bound_->Set(value);
+                if (History) mvvm::RecordChange(*History, *bound_, previous, value, label_, true);
+            } else value_ = value;
             if (OnValueChanged) OnValueChanged(value);
         }
+        if (released) History->BreakMerge();
     }
 
     SliderFloatWidget::SliderFloatWidget(std::string label, float min, float max, float initial)

@@ -144,6 +144,23 @@ TEST_F(InputWidgetsTests, CheckboxUserEventCommitsBeforeCallbackAndProgrammaticS
     EXPECT_EQ(calls, 1);
 }
 
+TEST_F(InputWidgetsTests, CheckboxRecordsUserToggleInHistory) {
+    ObservableProperty<bool> checked(nullptr, "Checked", false);
+    cpptoolkit::mvvm::UndoStack history;
+    CheckBoxWidget widget("Check", checked);
+    widget.History = &history;
+    Draw(widget);
+    Click(widget, ImVec2(itemMin_.x + 8, itemMin_.y + 8));
+    EXPECT_TRUE(checked.Get());
+    EXPECT_EQ(history.UndoDepth(), 1u);
+    history.Undo();
+    EXPECT_FALSE(checked.Get());
+    history.Redo();
+    EXPECT_TRUE(checked.Get());
+    checked.Set(false);
+    EXPECT_EQ(history.UndoDepth(), 1u);
+}
+
 TEST_F(InputWidgetsTests, RadioOnlyNotifiesWhenSelectionActuallyChanges) {
     ObservableProperty<int> selection(nullptr, "Selection", -1);
     int calls = 0;

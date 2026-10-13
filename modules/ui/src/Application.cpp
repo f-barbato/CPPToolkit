@@ -103,6 +103,7 @@ namespace cpptoolkit::ui {
         } guiGuard;
 
         concurrency::Dispatcher::Main().ProcessPending();
+        _shortcuts.Process();
 
         if (this->_rootView) {
             this->_rootView->Draw();

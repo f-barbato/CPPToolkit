@@ -29,9 +29,18 @@ public:
             return;
         }
         if (!open_) return;
-        if (ImGui::Begin(title_.c_str(), &open_, flags_)) DrawChildren();
+        if (ImGui::Begin(title_.c_str(), closable_ ? &open_ : nullptr, flags_)) DrawChildren();
         ImGui::End();
     }
+    /** @brief Show or hide the window close button (also the docked-tab close button).
+     *  @param closable False removes the X so the user cannot close the window; default true.
+     *  @note SetOpen() still closes the window programmatically.
+     */
+    void SetClosable(bool closable) { closable_ = closable; }
+    /** @brief Query whether the window shows a close button.
+     *  @return True if closable.
+     */
+    bool IsClosable() const { return closable_; }
     /** @brief Add window flags.
      *  @param flags Flags to enable.
      */
@@ -69,6 +78,7 @@ public:
 private:
     ImGuiWindowFlags flags_ = 0;
     bool open_ = true;
+    bool closable_ = true;
     std::string title_;
     bool window_ = false;
 };

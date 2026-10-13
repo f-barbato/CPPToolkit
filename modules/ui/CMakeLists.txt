@@ -92,6 +92,7 @@ set(UI_SOURCES
     src/FileDialog.cpp
     src/Application.cpp
     src/Styler.cpp
+    src/Shortcuts.cpp
 )
 
 cpptoolkit_add_module(

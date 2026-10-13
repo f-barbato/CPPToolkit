@@ -38,6 +38,14 @@ public:
     Panel& AddTab(std::string label);
     /** @brief Render tabs and draw the active content panel. */
     void Draw() override;
+    /** @brief Set ImGui tab-bar flags (e.g. Reorderable, fitting policy), replacing the previous ones.
+     *  @param flags ImGuiTabBarFlags combination; takes effect on the next Draw().
+     */
+    void SetTabBarFlags(ImGuiTabBarFlags flags) { flags_ = flags; }
+    /** @brief Query the current tab-bar flags.
+     *  @return ImGuiTabBarFlags in use.
+     */
+    [[nodiscard]] ImGuiTabBarFlags GetTabBarFlags() const { return flags_; }
     /** @brief Build every tab panel, including inactive tabs. */
     void Build() override;
     /** @brief Render every tab and direct child, including inactive tabs. */
@@ -56,6 +64,7 @@ private:
     mvvm::ObservableProperty<int>& selectedTab_;
     std::vector<Tab> tabs_;
     int lastSelection_ = -2;
+    ImGuiTabBarFlags flags_ = ImGuiTabBarFlags_None;
 };
 
 /** @brief Container for MenuWidget children in a main or window menu bar.

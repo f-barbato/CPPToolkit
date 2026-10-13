@@ -57,7 +57,10 @@ void CheckBoxWidget::Draw() {
     if (!Visible) return;
     const bool previous = bound_.Get();
     bool value = previous;
-    if (ImGui::Checkbox(label_.c_str(), &value)) Commit(bound_, previous, value, OnCheckedChanged);
+    if (ImGui::Checkbox(label_.c_str(), &value)) {
+        Commit(bound_, previous, value, OnCheckedChanged);
+        if (History) mvvm::RecordChange(*History, bound_, previous, value, label_);
+    }
 }
 
 RadioButtonWidget::RadioButtonWidget(std::string label, mvvm::ObservableProperty<int>& bound,
@@ -158,10 +161,15 @@ void DragFloatWidget::Draw() {
     if (!Visible) return;
     const float previous = bound_.Get();
     float value = previous;
-    if (ImGui::DragFloat(label_.c_str(), &value, speed_, min_, max_, "%.3f",
-                         ImGuiSliderFlags_AlwaysClamp)) {
-        Commit(bound_, previous, std::clamp(value, min_, max_), OnValueChanged);
+    const bool edited = ImGui::DragFloat(label_.c_str(), &value, speed_, min_, max_, "%.3f",
+                                         ImGuiSliderFlags_AlwaysClamp);
+    const bool released = History && ImGui::IsItemDeactivated();
+    if (edited) {
+        const float clamped = std::clamp(value, min_, max_);
+        Commit(bound_, previous, clamped, OnValueChanged);
+        if (History) mvvm::RecordChange(*History, bound_, previous, clamped, label_, true);
     }
+    if (released) History->BreakMerge();
 }
 
 SpinBoxWidget::SpinBoxWidget(std::string label, mvvm::ObservableProperty<int>& bound,

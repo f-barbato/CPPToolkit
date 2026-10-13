@@ -12,3 +12,4 @@
 #include "cpptoolkit/mvvm/Observable.h"
 #include "cpptoolkit/mvvm/ObservableObject.h"
 #include "cpptoolkit/mvvm/ObservableProperty.h"
+#include "cpptoolkit/mvvm/UndoStack.h"

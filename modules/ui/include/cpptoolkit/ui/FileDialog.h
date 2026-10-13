@@ -37,19 +37,34 @@ public:
 
     /** @brief Create an empty handle (Valid() is false). */
     PendingFileDialog();
-    /** @brief Wrap shared state; used internally by FileDialog. */
+    /** @brief Wrap shared state; used internally by FileDialog.
+     *  @param state Shared dialog state.
+     */
     explicit PendingFileDialog(std::shared_ptr<State> state);
+    /** @brief Release the handle; a running dialog is detached. */
     ~PendingFileDialog();
-    PendingFileDialog(PendingFileDialog&&) noexcept;
-    PendingFileDialog& operator=(PendingFileDialog&&) noexcept;
+    /** @brief Move-construct a handle.
+     *  @param other Source, left invalid.
+     */
+    PendingFileDialog(PendingFileDialog&& other) noexcept;
+    /** @brief Move-assign a handle.
+     *  @param other Source, left invalid.
+     *  @return This handle.
+     */
+    PendingFileDialog& operator=(PendingFileDialog&& other) noexcept;
     PendingFileDialog(const PendingFileDialog&) = delete;
     PendingFileDialog& operator=(const PendingFileDialog&) = delete;
 
-    /** @brief True while a dialog is outstanding (running or not yet taken). */
+    /** @brief True while a dialog is outstanding (running or not yet taken).
+     *  @return Whether a dialog is outstanding.
+     */
     bool Valid() const;
-    /** @brief True once the dialog closed and the result can be taken. Thread-safe. */
+    /** @brief True once the dialog closed and the result can be taken. Thread-safe.
+     *  @return Whether Take() can be called.
+     */
     bool IsReady() const;
     /** @brief Retrieve the result and invalidate the handle.
+     *  @return Dialog outcome.
      *  @throws std::logic_error If not ready.
      */
     FileDialogResult Take();
@@ -70,17 +85,33 @@ private:
  */
 class CPPTOOLKIT_UI_EXPORT FileDialog {
 public:
-    /** @brief Asynchronous OpenFile(). */
+    /** @brief Asynchronous OpenFile().
+     *  @param filters Optional extension filters.
+     *  @param defaultPath Optional initial directory.
+     *  @return Handle to poll for the result.
+     */
     static PendingFileDialog OpenFileAsync(const std::vector<FileFilter>& filters = {},
                                            const std::string& defaultPath = {});
-    /** @brief Asynchronous OpenFiles(). */
+    /** @brief Asynchronous OpenFiles().
+     *  @param filters Optional extension filters.
+     *  @param defaultPath Optional initial directory.
+     *  @return Handle to poll for the result.
+     */
     static PendingFileDialog OpenFilesAsync(const std::vector<FileFilter>& filters = {},
                                             const std::string& defaultPath = {});
-    /** @brief Asynchronous SaveFile(). */
+    /** @brief Asynchronous SaveFile().
+     *  @param filters Optional extension filters.
+     *  @param defaultPath Optional initial directory.
+     *  @param defaultName Optional suggested file name.
+     *  @return Handle to poll for the result.
+     */
     static PendingFileDialog SaveFileAsync(const std::vector<FileFilter>& filters = {},
                                            const std::string& defaultPath = {},
                                            const std::string& defaultName = {});
-    /** @brief Asynchronous PickFolder(). */
+    /** @brief Asynchronous PickFolder().
+     *  @param defaultPath Optional initial directory.
+     *  @return Handle to poll for the result.
+     */
     static PendingFileDialog PickFolderAsync(const std::string& defaultPath = {});
 
     /** @brief Choose one existing file.

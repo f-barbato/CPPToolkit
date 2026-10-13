@@ -4,12 +4,14 @@
  *  @brief Two-way observable float slider.
  */
 
+#include <functional>
 #include <string>
 #include <utility>
 
 #include <imgui.h>
 
 #include <cpptoolkit/mvvm/ObservableProperty.h>
+#include <cpptoolkit/mvvm/UndoStack.h>
 
 #include "cpptoolkit/ui/Widget.h"
 
@@ -30,7 +32,6 @@ public:
      */
     SliderFloatWidget(std::string label, mvvm::ObservableProperty<float>& bound, float min, float max,
                       std::function<void(float)> onValueChanged = {});
-    /** @brief Render and commit actual user edits. */
     /** @brief Construct an unbound slider using a local value.
      *  @param label ImGui label and ID.
      *  @param min Finite lower endpoint.
@@ -43,6 +44,8 @@ public:
     void Draw() override;
     /** @brief Optional callback receiving the committed value on the render thread. */
     std::function<void(float)> OnValueChanged;
+    /** @brief Optional borrowed history; bound edits are recorded and a drag becomes one step. */
+    mvvm::UndoStack* History = nullptr;
 
 private:
     std::string label_;

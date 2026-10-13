@@ -24,7 +24,7 @@ void TabBarWidget::Draw() {
         return;
     }
     ImGui::PushID(this);
-    if (ImGui::BeginTabBar(label_.c_str())) {
+    if (ImGui::BeginTabBar(label_.c_str(), flags_)) {
         const bool programmatic = selected != lastSelection_;
         for (std::size_t i = 0; i < tabs_.size(); ++i) {
             ImGui::PushID(static_cast<int>(i));
