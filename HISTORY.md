@@ -1,18 +1,17 @@
 # Release history
 
 ## 0.1.0
-
 First stable release.
 
 ### Added
 
 - Generic `ui::ShortcutManager` (`Application::Shortcuts()`): unique key chords bound to actions or `mvvm::Command`s, `CanExecute`, rebinding, conflict detection and display text.
+- `mvvm::UndoStack` with groups, merged continuous edits, depth limit and bindable state, plus `SetUndoable()`/`RecordChange()`; `SliderFloatWidget`, `DragFloatWidget`, `CheckBoxWidget` and `TextBoxWidget` record user edits through an optional `History` pointer. The demo binds Ctrl+Z / Ctrl+Y and Undo/Redo buttons.
 - Independent `concurrency` module, available through the `concurrency` vcpkg feature and `cpptoolkit::concurrency` CMake target, with static/shared builds and Windows export headers.
 - Thread-safe cooperative cancellation through `CancellationSource` and copyable `CancellationToken` handles sharing cancellation state.
 - TestUI Feedback example demonstrating background task progress, cancellation, restart and safe worker shutdown.
 - Regression tests for cancellation, dispatcher snapshot ordering and FIFO background execution.
 - Security policy documenting supported versions and vulnerability reporting.
-- `mvvm::UndoStack` with groups, merged continuous edits, depth limit and bindable state, plus `SetUndoable()`/`RecordChange()`; `SliderFloatWidget`, `DragFloatWidget`, `CheckBoxWidget` and `TextBoxWidget` record user edits through an optional `History` pointer. The demo binds Ctrl+Z / Ctrl+Y and Undo/Redo buttons.
 - `Application::SetFont()`, `ResetFont()` and getters to use a custom default font, applied at the next frame boundary.
 - `FileDialog` (native open/save/folder dialogs via nativefiledialog-extended, parented to the window on Windows/macOS/X11/Wayland) and `FilePathWidget` in the `ui` module, with non-blocking `*Async` variants (worker thread; synchronous on macOS); the TestUI font control uses it.
 - `Panel::SetClosable()`/`IsClosable()` to hide the window (or docked-tab) close button; the TestUI layout controls toggle it.
